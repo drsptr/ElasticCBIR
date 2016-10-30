@@ -1,4 +1,4 @@
-package it.unipi.ing.drsptr.elastic.main;
+package it.unipi.ing.drsptr.main;
 
 import java.io.File;
 import java.io.IOException;
@@ -18,9 +18,9 @@ public class ElasticCBIR {
 
 		esImgManager.connectTo(ElasticCBIRParameters.LOOPBACK_ADDRESS, ElasticIndexManager.DEFAULT_PORT);
 
-		//esImgManager.indexImgDataset(ElasticCBIRParameters.INDEX_NAME, ElasticCBIRParameters.INDEX_TYPE);
-
-		//esImgManager.forceRefresh(ElasticCBIRParameters.INDEX_NAME);
+		esImgManager.bulkIndexImgDataset(ElasticCBIRParameters.INDEX_NAME, ElasticCBIRParameters.INDEX_TYPE);
+		
+		esImgManager.forceRefresh(ElasticCBIRParameters.INDEX_NAME);
 
 		List<ImgDescriptor> resLucene = esImgManager.search(ElasticCBIRParameters.INDEX_NAME, ElasticCBIRParameters.INDEX_TYPE, ElasticCBIRParameters.SRC_IMG, ElasticCBIRParameters.K);
 		Output.toHTML(resLucene, ElasticCBIRParameters.BASE_URI, ElasticCBIRParameters.RESULTS_HTML_LUCENE);

@@ -1,4 +1,4 @@
-package it.unipi.ing.drsptr.elastic.main;
+package it.unipi.ing.drsptr.main;
 
 import java.io.File;
 import java.net.InetAddress;

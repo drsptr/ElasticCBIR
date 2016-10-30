@@ -6,6 +6,7 @@ import java.net.UnknownHostException;
 import java.util.Map;
 import java.util.concurrent.ExecutionException;
 
+import org.elasticsearch.action.bulk.BulkItemResponse;
 import org.elasticsearch.action.bulk.BulkRequestBuilder;
 import org.elasticsearch.action.bulk.BulkResponse;
 import org.elasticsearch.action.delete.DeleteResponse;
@@ -153,19 +154,16 @@ public class ElasticIndexManager {
 	
 
 	public BulkResponse bulkIndex(String indexName, String indexType, Map<String, String> idJsonDocMap, boolean refresh) {
-		BulkRequestBuilder bulkRequestBuilder = client.prepareBulk();
+		BulkRequestBuilder bulkRequestBuilder = client.prepareBulk()
+														.setRefresh(refresh);
 
-		for(String docId : idJsonDocMap.keySet())
-			bulkRequestBuilder.setRefresh(refresh)
-								.add(client
-										.prepareIndex(indexName, indexType)
+		for(String docId : idJsonDocMap.keySet()) {
+			bulkRequestBuilder.add(client
+										.prepareIndex(indexName, indexType, docId)
 										.setSource(idJsonDocMap.get(docId)));
+		}
 
 		BulkResponse  bulkResponse = bulkRequestBuilder.get();
-
-		if(bulkResponse.hasFailures()) {
-			System.out.println("FAIL TO INDEX SOME ELEMENTS");
-		}
 
 		return bulkResponse;
 	}
@@ -176,7 +174,7 @@ public class ElasticIndexManager {
 
 		for(String docId : idJsonDocMap.keySet())
 			bulkRequestBuilder.add(client
-									.prepareDelete(indexName, indexType, idJsonDocMap.get(docId)));
+									.prepareDelete(indexName, indexType, docId));
 
 		return bulkRequestBuilder.get();
 	}
