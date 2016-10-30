@@ -12,6 +12,7 @@ import java.util.Map;
 import org.elasticsearch.action.get.GetResponse;
 import org.elasticsearch.action.index.IndexResponse;
 import org.elasticsearch.action.search.SearchResponse;
+import org.elasticsearch.common.transport.InetSocketTransportAddress;
 import org.elasticsearch.search.SearchHit;
 
 import it.unipi.ing.drsptr.elastic.img.tools.Fields;
@@ -59,18 +60,28 @@ public class ElasticImageIndexManager {
 	
 	
 	
-	public void connect(InetAddress address, int port) {
-		indexManager.connect(address, port);
+	public void connectTo(InetAddress address, int port) {
+		indexManager.connectTo(address, port);
 	}
 	
 	
-	public void connect(String hostname, int port) throws UnknownHostException {
-		indexManager.connect(hostname, port);
+	public void connectTo(String hostname, int port) throws UnknownHostException {
+		indexManager.connectTo(hostname, port);
 	}
 
 	
-	public void disconnect() {
-		indexManager.disconnect();
+	public void disconnectFrom(InetAddress address, int port) {
+		indexManager.disconnectFrom(address, port);
+	}
+	
+	
+	public void disconnectFrom(String hostname, int port) throws UnknownHostException {
+		indexManager.disconnectFrom(InetAddress.getByName(hostname), port);
+	}
+	
+	
+	public void close() {
+		indexManager.close();
 	}
 	
 	

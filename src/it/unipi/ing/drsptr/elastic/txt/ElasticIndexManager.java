@@ -64,20 +64,30 @@ public class ElasticIndexManager {
 /*
  * 		CONNECT/DISCONNECT	
  */
-	public void connect(InetAddress address, int port) {
+	public void connectTo(InetAddress address, int port) {
 		client.addTransportAddress(new InetSocketTransportAddress(address, port));
 	}
 	
 	
-	public void connect(String hostname, int port) throws UnknownHostException {
+	public void connectTo(String hostname, int port) throws UnknownHostException {
 		client.addTransportAddress(new InetSocketTransportAddress(InetAddress.getByName(hostname), port));
 	}
 
 	
-	public void disconnect() {
+	public void disconnectFrom(InetAddress address, int port) {
+		client.removeTransportAddress(new InetSocketTransportAddress(address, port));
+	}
+	
+	
+	public void disconnectFrom(String hostname, int port) throws UnknownHostException {
+		client.removeTransportAddress(new InetSocketTransportAddress(InetAddress.getByName(hostname), port));
+	}
+	
+	
+	public void close() {
 		client.close();
 	}
-
+	
 	
 	
 /*

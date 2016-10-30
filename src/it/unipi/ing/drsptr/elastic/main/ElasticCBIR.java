@@ -14,19 +14,17 @@ import it.unipi.ing.mim.deep.tools.Output;
 public class ElasticCBIR {
 
 	public static void main(String[] args) throws IOException, ClassNotFoundException, JsonDocParserFieldNotFoundException, InterruptedException {
-		/*ElasticImageIndexManager esImgManager = new ElasticImageIndexManager(ElasticCBIRParameters.STORAGE_FILE, ElasticCBIRParameters.Q);
+		ElasticImageIndexManager esImgManager = new ElasticImageIndexManager(ElasticCBIRParameters.STORAGE_FILE, ElasticCBIRParameters.Q);
 
-		esImgManager.connect(ElasticCBIRParameters.LOOPBACK_ADDRESS, ElasticIndexManager.DEFAULT_PORT);
+		esImgManager.connectTo(ElasticCBIRParameters.LOOPBACK_ADDRESS, ElasticIndexManager.DEFAULT_PORT);
 
-		esImgManager.indexImgDataset(ElasticCBIRParameters.INDEX_NAME, ElasticCBIRParameters.INDEX_TYPE);
+		//esImgManager.indexImgDataset(ElasticCBIRParameters.INDEX_NAME, ElasticCBIRParameters.INDEX_TYPE);
 
-		esImgManager.forceRefresh(ElasticCBIRParameters.INDEX_NAME);
+		//esImgManager.forceRefresh(ElasticCBIRParameters.INDEX_NAME);
 
 		List<ImgDescriptor> resLucene = esImgManager.search(ElasticCBIRParameters.INDEX_NAME, ElasticCBIRParameters.INDEX_TYPE, ElasticCBIRParameters.SRC_IMG, ElasticCBIRParameters.K);
 		Output.toHTML(resLucene, ElasticCBIRParameters.BASE_URI, ElasticCBIRParameters.RESULTS_HTML_LUCENE);
 
-		esImgManager.disconnect();*/
-		DNNExtractor extractor = new DNNExtractor();
-		float[] features = extractor.extract(new File(ElasticCBIRParameters.SRC_FOLDER, ElasticCBIRParameters.SRC_IMG), "fc7");
+		esImgManager.close();
 	}
 }
