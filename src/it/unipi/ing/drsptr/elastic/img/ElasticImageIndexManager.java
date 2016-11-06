@@ -12,6 +12,7 @@ import java.util.Map;
 import org.elasticsearch.action.get.GetResponse;
 import org.elasticsearch.action.index.IndexResponse;
 import org.elasticsearch.action.search.SearchResponse;
+import org.elasticsearch.common.settings.Settings;
 import org.elasticsearch.common.transport.InetSocketTransportAddress;
 import org.elasticsearch.search.SearchHit;
 
@@ -82,6 +83,17 @@ public class ElasticImageIndexManager {
 	
 	public void close() {
 		indexManager.close();
+	}
+	
+	
+	
+	public void createIndex(String indexName, Settings.Builder settings) {
+		indexManager.createIndex(indexName, settings);
+	}
+	
+	
+	public void deleteIndex(String indexName) {
+		indexManager.deleteIndex(indexName);
 	}
 	
 	

@@ -17,6 +17,8 @@ public class ElasticCBIR {
 		ElasticImageIndexManager esImgManager = new ElasticImageIndexManager(ElasticCBIRParameters.STORAGE_FILE, ElasticCBIRParameters.Q);
 
 		esImgManager.connectTo(ElasticCBIRParameters.LOOPBACK_ADDRESS, ElasticIndexManager.DEFAULT_PORT);
+		
+		//esImgManager.deleteIndex(ElasticCBIRParameters.INDEX_NAME);
 
 		esImgManager.bulkIndexImgDataset(ElasticCBIRParameters.INDEX_NAME, ElasticCBIRParameters.INDEX_TYPE);
 		

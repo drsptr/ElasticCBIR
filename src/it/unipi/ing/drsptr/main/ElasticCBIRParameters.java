@@ -3,17 +3,25 @@ package it.unipi.ing.drsptr.main;
 import java.io.File;
 import java.net.InetAddress;
 
+import org.elasticsearch.common.settings.Settings;
+
 public class ElasticCBIRParameters {
 
-	// Loopback address
+	// Addresses
 	public static final InetAddress LOOPBACK_ADDRESS = InetAddress.getLoopbackAddress();
 
-	// Elasticsearch index name
+	
+	// Elasticsearch settings
 	public static final String INDEX_NAME = "cbir";
-
-	// Elasticsearch index type
 	public static final String INDEX_TYPE = "images";
-
+	public static final int NUMBER_OF_SHARDS = 1;
+	public static final int NUMBER_OF_REPLICAS = 0;
+	public static final Settings.Builder INDEX_SETTINGS = Settings.builder()
+																	.put("index.number_of_shards", ElasticCBIRParameters.NUMBER_OF_SHARDS)
+																	.put("index.number_of_replicas", ElasticCBIRParameters.NUMBER_OF_REPLICAS);
+	// Elasticsearch Mapping
+	public static final	String INDEX_MAPPING = "";
+	
 	// Sample image
 	public static final String SRC_IMG = "01d6ab62633cc865f54500be71a36cad.jpg";
 	

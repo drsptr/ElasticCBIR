@@ -14,8 +14,8 @@ public class JsonImageBuilder {
 		String imgTxt = DeepFeatureEncoder.encode(imgDesc.getFeatures(), qFactor);
 		XContentBuilder builder = jsonBuilder()
 									.startObject()
-									.field(Fields.IMG, imgTxt)
-									.field(Fields.BIN, imgDesc.toBytes())
+										.field(Fields.IMG, imgTxt)
+										.field(Fields.BIN, imgDesc.toBytes())
 									.endObject();
 		return builder.string();
 	}

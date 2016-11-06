@@ -90,7 +90,29 @@ public class ElasticIndexManager {
 	}
 	
 	
+
+/*
+ * 		CREATE/DELETE INDEX	
+ */
+	public void createIndex(String indexName, Settings.Builder settings) {
+		client.admin().indices().prepareCreate(indexName)
+								.setSettings(settings)
+								.get();
+	}
 	
+	
+	public void deleteIndex(String indexName) {
+		client.admin().indices().prepareDelete(indexName)
+								.get();
+	}
+	
+	
+	public void putMapping(String indexName, String indexType, String mapping) {
+		client.admin().indices().preparePutMapping(indexName)
+								.setType(indexType)
+								.setSource(mapping)
+								.get();
+	}
 /*
  * 		MANAGEMENT	
  */
@@ -111,7 +133,6 @@ public class ElasticIndexManager {
 		return client.prepareSearch(indexName)
 						.setTypes(indexType)
 						.setSearchType(SearchType.DFS_QUERY_THEN_FETCH)
-						.addField("_source")
 						.setQuery(QueryBuilders.queryStringQuery(fieldValue).field(fieldName))
 						.setFrom(0)
 						.setSize(maxResultSize)
@@ -157,11 +178,10 @@ public class ElasticIndexManager {
 		BulkRequestBuilder bulkRequestBuilder = client.prepareBulk()
 														.setRefresh(refresh);
 
-		for(String docId : idJsonDocMap.keySet()) {
+		for(String docId : idJsonDocMap.keySet())
 			bulkRequestBuilder.add(client
 										.prepareIndex(indexName, indexType, docId)
 										.setSource(idJsonDocMap.get(docId)));
-		}
 
 		BulkResponse  bulkResponse = bulkRequestBuilder.get();
 
@@ -201,7 +221,7 @@ public class ElasticIndexManager {
 		if(idJsonMapToIndex != null)
 			for(String docId : idJsonMapToIndex.keySet())
 				bulkRequestBuilder.add(client
-						.prepareIndex(indexName, indexType)
+						.prepareIndex(indexName, indexType, docId)
 						.setSource(idJsonMapToIndex.get(docId)));
 
 		if(idJsonMapToUpdate != null)

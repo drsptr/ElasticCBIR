@@ -1,13 +1,10 @@
-package it.unipi.ing.drsptr.elastic.img.tools;
+package importer;
 
-public class Fields {
-	
+public class ElasticsearchFields {
+
 	public static final String IMG = "encoded_features";
 	
 	public static final String TAGS = "tags";
 	
 	public static final String URI = "uri";
-	
-	public static final String BIN = "binary";
-
 }

@@ -8,8 +8,8 @@ import org.elasticsearch.search.SearchHit;
 
 public class JsonDocParser {
 	
-	private static int FROM_INDEX = 3;
-	private static int ERROR_LENGTH = 1;
+	private static final int FROM_INDEX = 3;
+	private static final int ERROR_LENGTH = 1;
 	
 	
 	
