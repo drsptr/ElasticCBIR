@@ -58,7 +58,14 @@ public class ElasticIndexManager {
 		client = TransportClient.builder()
 								.settings(settings)
 								.build();	
-	} 
+	}
+
+
+	public ElasticIndexManager(Settings settings) {
+		client = TransportClient.builder()
+				.settings(settings)
+				.build();
+	}
 
 	
 	
@@ -113,6 +120,9 @@ public class ElasticIndexManager {
 								.setSource(mapping)
 								.get();
 	}
+
+
+
 /*
  * 		MANAGEMENT	
  */
