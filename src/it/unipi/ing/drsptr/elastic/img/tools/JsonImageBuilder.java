@@ -1,6 +1,7 @@
 package it.unipi.ing.drsptr.elastic.img.tools;
 
 import java.io.IOException;
+import java.util.Map;
 
 import org.elasticsearch.common.xcontent.XContentBuilder;
 
@@ -17,6 +18,18 @@ public class JsonImageBuilder {
 										.field(Fields.IMG, imgTxt)
 										.field(Fields.BIN, imgDesc.toBytes())
 									.endObject();
+		return builder.string();
+	}
+
+
+	public static String build(String imgField, String tagsField, String uriField) throws IOException {
+		XContentBuilder builder = jsonBuilder()
+									.startObject()
+										.field(Fields.IMG, imgField)
+										.field(Fields.TAGS, tagsField)
+										.field(Fields.URI, uriField)
+									.endObject();
+
 		return builder.string();
 	}
 }

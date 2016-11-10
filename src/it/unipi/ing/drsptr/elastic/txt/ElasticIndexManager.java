@@ -7,6 +7,7 @@ import java.util.Map;
 import java.util.concurrent.ExecutionException;
 
 import org.elasticsearch.action.bulk.BulkItemResponse;
+import org.elasticsearch.action.bulk.BulkProcessor;
 import org.elasticsearch.action.bulk.BulkRequestBuilder;
 import org.elasticsearch.action.bulk.BulkResponse;
 import org.elasticsearch.action.delete.DeleteResponse;
@@ -38,6 +39,7 @@ public class ElasticIndexManager {
  * 		MEMBER VARIABLES
  */
 	private TransportClient client;
+	private BulkProcessor bulkProcessor;
 	
 	
 	
@@ -58,7 +60,14 @@ public class ElasticIndexManager {
 		client = TransportClient.builder()
 								.settings(settings)
 								.build();	
-	} 
+	}
+
+
+	public ElasticIndexManager(Settings settings) {
+		client = TransportClient.builder()
+								.settings(settings)
+								.build();
+	}
 
 	
 	
@@ -94,7 +103,7 @@ public class ElasticIndexManager {
 /*
  * 		CREATE/DELETE INDEX	
  */
-	public void createIndex(String indexName, Settings.Builder settings) {
+	public void createIndex(String indexName, Settings settings) {
 		client.admin().indices().prepareCreate(indexName)
 								.setSettings(settings)
 								.get();
@@ -113,6 +122,9 @@ public class ElasticIndexManager {
 								.setSource(mapping)
 								.get();
 	}
+
+
+
 /*
  * 		MANAGEMENT	
  */
@@ -237,6 +249,11 @@ public class ElasticIndexManager {
 										.prepareDelete(indexName, indexType, idJsonMapToDelete.get(docId)));
 
 		return bulkRequestBuilder.get();
+	}
+
+
+	public void initBulkProcessor(int numberOfRequests) {
+
 	}
 
 

@@ -12,16 +12,17 @@ public class MappingBuilder {
 	
 	public static String build(Map<String, Map<String, String>> fields) throws IOException {
 		
-		XContentBuilder builder = jsonBuilder().startObject();
-		
-		builder.field("properties");
+		XContentBuilder builder = jsonBuilder();
+
 		builder.startObject();
+			builder.field("properties");
+				builder.startObject();
 		
-		for(String field : fields.keySet())
-			builder.field(field, fields.get(field));
+					for(String field : fields.keySet())
+						builder.field(field, fields.get(field));
 			
-		builder.endObject(); // properties
-		builder.endObject(); //JSON
+			builder.endObject();
+		builder.endObject();
 		
 		return builder.string();
 	}

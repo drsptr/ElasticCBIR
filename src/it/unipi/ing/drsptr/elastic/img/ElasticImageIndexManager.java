@@ -87,7 +87,7 @@ public class ElasticImageIndexManager {
 	
 	
 	
-	public void createIndex(String indexName, Settings.Builder settings) {
+	public void createIndex(String indexName, Settings settings) {
 		indexManager.createIndex(indexName, settings);
 	}
 	
