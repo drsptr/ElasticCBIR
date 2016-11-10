@@ -2,12 +2,7 @@ package it.unipi.ing.drsptr.main;
 
 import java.io.File;
 import java.net.InetAddress;
-<<<<<<< HEAD
 import java.util.*;
-=======
-import java.util.HashMap;
-import java.util.Map;
->>>>>>> origin/master
 
 import it.unipi.ing.drsptr.elastic.img.tools.Fields;
 import org.elasticsearch.common.settings.Settings;
@@ -25,17 +20,12 @@ public class ElasticCBIRParameters {
 	public static final int NUMBER_OF_REPLICAS = 0;
 	public static final Settings INDEX_SETTINGS = Settings.builder()
 																	.put("index.number_of_shards", ElasticCBIRParameters.NUMBER_OF_SHARDS)
-<<<<<<< HEAD
 																	.put("index.number_of_replicas", ElasticCBIRParameters.NUMBER_OF_REPLICAS)
 															.build();
-=======
-																	.put("index.number_of_replicas", ElasticCBIRParameters.NUMBER_OF_REPLICAS);
->>>>>>> origin/master
 
 
 	// Lucene imported index settings
 	public static final String LUCENE_INDEX_PATH = "C://Users//Pietro//Desktop//DeepLuceneYFCC100M_Q30_merged";
-<<<<<<< HEAD
 	public static final String LUCENE_FIELDS_ID = "ID"; // Indexed (docs), Stored, Norms
 	public static final String LUCENE_FIELDS_IMG = "DEEP"; // Indexed (docs, freqs), term Vector, Norms
 	public static final String LUCENE_FIELDS_TAGS = "TXT"; // Indexed (docs, freqs), Stored, term Vector, Norms
@@ -47,12 +37,6 @@ public class ElasticCBIRParameters {
 	public static final List<String> LUCENE_FIELDS_TV = Collections.unmodifiableList(	Arrays.asList(	LUCENE_FIELDS_IMG
 																						));
 
-=======
-	public static final String LUCENE_FIELDS_ID = "ID";
-	public static final String LUCENE_FIELDS_IMG = "DEEP";
-	public static final String LUCENE_FIELDS_TAGS = "TXT";
-	public static final String LUCENE_FIELDS_URI = "URI";
->>>>>>> origin/master
 
 
 	// Elasticsearch Mapping

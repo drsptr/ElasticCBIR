@@ -9,18 +9,14 @@ import it.unipi.ing.drsptr.elastic.img.ElasticImageIndexManager;
 import it.unipi.ing.drsptr.elastic.img.tools.JsonImageBuilder;
 import it.unipi.ing.drsptr.elastic.txt.ElasticIndexManager;
 import it.unipi.ing.drsptr.elastic.utilities.JsonDocParserFieldNotFoundException;
-<<<<<<< HEAD
 import it.unipi.ing.drsptr.elastic.utilities.MappingBuilder;
 import it.unipi.ing.drsptr.lucene.LuceneIndexReader;
-=======
->>>>>>> origin/master
 import it.unipi.ing.mim.deep.ImgDescriptor;
 import it.unipi.ing.mim.deep.tools.Output;
 import org.elasticsearch.action.bulk.BulkResponse;
 
 public class ElasticCBIR {
 
-<<<<<<< HEAD
 	private static void importLuceneIndex(String lucenePath, List<String> storedFields, List<String> termVectorFields) throws IOException, InterruptedException {
 		ElasticIndexManager indexManager = new ElasticIndexManager();
 		indexManager.connectTo(ElasticCBIRParameters.LOOPBACK_ADDRESS, ElasticIndexManager.DEFAULT_PORT);
@@ -50,10 +46,6 @@ public class ElasticCBIR {
 			System.out.print("\r");
 		}
 		indexManager.close();
-=======
-	private static void importLuceneIndex() throws IOException {
-
->>>>>>> origin/master
 	}
 
 	public static void main(String[] args) throws IOException, ClassNotFoundException, JsonDocParserFieldNotFoundException, InterruptedException {
