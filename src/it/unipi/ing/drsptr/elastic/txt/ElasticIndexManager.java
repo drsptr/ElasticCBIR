@@ -65,8 +65,13 @@ public class ElasticIndexManager {
 
 	public ElasticIndexManager(Settings settings) {
 		client = TransportClient.builder()
+<<<<<<< HEAD
 								.settings(settings)
 								.build();
+=======
+				.settings(settings)
+				.build();
+>>>>>>> origin/master
 	}
 
 	
