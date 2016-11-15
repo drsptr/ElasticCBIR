@@ -10,25 +10,33 @@ import java.io.Serializable;
 public class ImgDescriptor implements Serializable, Comparable<ImgDescriptor> {
 
 	private static final long serialVersionUID = 1L;
-	
-	private float[] normalizedVector; // image feature
-	
-	private String id; // unique id of the image (usually file name)
-	
+
+	private String id, uri, tags;
+	private float[] normalizedVector;
 	private double dist; // used for sorting purposes
-	
-	public ImgDescriptor(float[] features, String id) {
+
+
+
+
+
+	public ImgDescriptor(float[] features, String id, String tags, String uri) {
 		float norm2 = evaluateNorm2(features);
 		this.normalizedVector = getNormalizedVector(features, norm2);
 		this.id = id;
+		this.tags = tags;
+		this.uri = uri;
 	}
-	
-	//////
-	public ImgDescriptor(String id)
-	{
+
+	public ImgDescriptor(String id, String tags, String uri) {
 		this.id = id;
+		this.tags = tags;
+		this.uri = uri;
 	}
-	
+
+
+
+
+
 	public float[] getFeatures() {
 		return normalizedVector;
 	}
@@ -37,8 +45,12 @@ public class ImgDescriptor implements Serializable, Comparable<ImgDescriptor> {
 		return id;
 	}
 
-	public void setId(String id) {
-		this.id = id;
+	public String getTags() {
+		return tags;
+	}
+
+	public String getUri() {
+		return uri;
 	}
 
 	public double getDist() {
@@ -48,6 +60,14 @@ public class ImgDescriptor implements Serializable, Comparable<ImgDescriptor> {
 	public void setDist(double dist) {
 		this.dist = dist;
 	}
+
+	public boolean hasFeatures() {
+		return (normalizedVector != null);
+	}
+
+
+
+
 
 	// compare with other friends using distances
 	@Override
@@ -88,7 +108,11 @@ public class ImgDescriptor implements Serializable, Comparable<ImgDescriptor> {
 		
 		return norm2;
 	}
-	
+
+
+
+
+
 	  public byte[] toBytes() throws IOException {
 	      ByteArrayOutputStream baos = new ByteArrayOutputStream();
 	      ObjectOutputStream os = new ObjectOutputStream(baos);
@@ -108,5 +132,4 @@ public class ImgDescriptor implements Serializable, Comparable<ImgDescriptor> {
 	        }
 	        return ids;
 		}
-    
 }

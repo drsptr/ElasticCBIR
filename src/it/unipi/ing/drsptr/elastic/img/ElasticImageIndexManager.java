@@ -2,18 +2,15 @@ package it.unipi.ing.drsptr.elastic.img;
 
 import java.io.File;
 import java.io.IOException;
-import java.net.InetAddress;
-import java.net.UnknownHostException;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import it.unipi.ing.drsptr.elastic.img.tools.DeepFeatureEncoder;
 import org.elasticsearch.action.get.GetResponse;
-import org.elasticsearch.action.index.IndexResponse;
 import org.elasticsearch.action.search.SearchResponse;
 import org.elasticsearch.common.settings.Settings;
-import org.elasticsearch.common.transport.InetSocketTransportAddress;
 import org.elasticsearch.search.SearchHit;
 
 import it.unipi.ing.drsptr.elastic.img.tools.Fields;
@@ -25,139 +22,124 @@ import it.unipi.ing.mim.deep.ImgDescriptor;
 import it.unipi.ing.mim.deep.seq.SeqImageStorage;
 import it.unipi.ing.mim.deep.tools.FeaturesStorage;
 
-public class ElasticImageIndexManager {
-	
-	private ElasticIndexManager indexManager;
-	private List<ImgDescriptor> imgDataset;
+/*
+ * ElasticImageIndexManager extends the ElasticIndexManager class introducing additional functions that allows to manage
+ * easily a local or a remote image dataset with Elasticsearch.
+ * It allows to: 1) Perform all the operations available with the ElasticIndexManager class
+ * 				 2) Index a local image dataset, extracting the deep features from the images of the dataset or loading
+ * 				 	them from a file
+ * 				 3) Perform a visual similarity search
+ * 				 4) Perform a textual search on the images' tags
+ * @author		Pietro De Rosa
+ */
+public class ElasticImageIndexManager extends ElasticIndexManager {
+
 	private int qFactor;
+	private List<ImgDescriptor> imgDataset; // for local dataset only
 
-	
-	// Constructor - it must be called when the deep features already exist in 'storageFile'
-	public ElasticImageIndexManager(File storageFile, int qFactor) throws IOException, ClassNotFoundException {
-		indexManager = new ElasticIndexManager();
+
+
+
+
+/*
+ * Default constructor. It uses default settings.
+ * @param		qFactor			-	the quantization factor used to obtain the encoded text for the features
+ */
+	public ElasticImageIndexManager(int qFactor)  {
+		super();
 		this.qFactor = qFactor;
+	}
+
+/*
+ * This constructor uses the default settings but it allows to specify the name of the cluster you have to connect to.
+ * @param		clustername		-	the name of the cluster you have to connect to
+ * @param		qFactor			-	the quantization factor used to obtain the encoded text for the features
+ */
+	public ElasticImageIndexManager(String clusterName, int qFactor) {
+		super(clusterName);
+		this.qFactor = qFactor;
+	}
+
+/*
+ * This constructor allows you specify custom settings for your client (cluster's name, ping timeout, etc).
+ * @param		settings		-	the settings for your client node
+ * @param		qFactor			-	the quantization factor used to obtain the encoded text for the features
+ */
+	public ElasticImageIndexManager(Settings settings, int qFactor) {
+		super(settings);
+		this.qFactor = qFactor;
+	}
+
+
+
+
+
+/*
+ * It loads the ImgDescriptor objects from the specified file and stores them in the member variable.
+ * @param		storageFile		-	the file where the ImgDescriptor objects have been previously stored
+ * @throws		IOException, ClassNotFoundException if there are errors reading the file
+ */
+	public void loadImgDescriptorsFromFile(File storageFile) throws IOException, ClassNotFoundException {
 		imgDataset = FeaturesStorage.load(storageFile);
 	}
-	
-	public ElasticImageIndexManager(String clusterName, File storageFile, int qFactor) throws IOException, ClassNotFoundException {
-		indexManager = new ElasticIndexManager(clusterName);
-		this.qFactor = qFactor;
-		imgDataset = FeaturesStorage.load(storageFile);
-	}
-	
-	
-	// Constructor - it first extracts deep features from 'imgSrcFolder', then stores them in 'storageFile'
-	public ElasticImageIndexManager(File imgSrcFolder, File storageFile, int qFactor) throws IOException {
-		indexManager = new ElasticIndexManager();
+
+/*
+ * It extracts the deep features for all the images contained in the folder, stores them in ImgDescriptor objects and
+ * finally stores them in the output file.
+ * @param		imgSrcFolder	-	the folder that contains all the images of the dataset
+ * @param		storageFile		-	the file where the extracted deep features will be stored
+ * @throws		IOException if something goes wrong while loading or storing the features
+ */
+	public void extractAndLoad(File imgSrcFolder, File storageFile) throws IOException {
 		imgDataset = SeqImageStorage.extractFeatures(imgSrcFolder);
 		FeaturesStorage.store(imgDataset, storageFile);
 	}
-	
-	public ElasticImageIndexManager(String clusterName, File imgSrcFolder, File storageFile, int qFactor) throws IOException {
-		indexManager = new ElasticIndexManager(clusterName);
-		imgDataset = SeqImageStorage.extractFeatures(imgSrcFolder);
-		FeaturesStorage.store(imgDataset, storageFile);
-	}
-	
-	
-	
-	public void connectTo(InetAddress address, int port) {
-		indexManager.connectTo(address, port);
-	}
-	
-	
-	public void connectTo(String hostname, int port) throws UnknownHostException {
-		indexManager.connectTo(hostname, port);
-	}
 
-	
-	public void disconnectFrom(InetAddress address, int port) {
-		indexManager.disconnectFrom(address, port);
-	}
-	
-	
-	public void disconnectFrom(String hostname, int port) throws UnknownHostException {
-		indexManager.disconnectFrom(InetAddress.getByName(hostname), port);
-	}
-	
-	
-	public void close() {
-		indexManager.close();
-	}
-	
-	
-	
-	public void createIndex(String indexName, Settings settings) {
-		indexManager.createIndex(indexName, settings);
-	}
-	
-	
-	public void deleteIndex(String indexName) {
-		indexManager.deleteIndex(indexName);
-	}
-	
-	
-	
-	public void indexImgDataset(String indexName, String indexType) throws IOException, InterruptedException {
-		int i, dataSize = imgDataset.size();
-		
-		for(i=0; i<dataSize; i++) {
-			System.out.print("Indexing.. " + (int)Math.ceil(((double)i/(double)dataSize) * 100) + "%");
-			indexManager.index(indexName, indexType, imgDataset.get(i).getId(), JsonImageBuilder.imageToJson(imgDataset.get(i), qFactor));
-			System.out.print("\r");
-		}
-		System.out.print("Indexing.. " + (int)Math.ceil(((double)i/(double)dataSize) * 100) + "%");
-	}
-
-	public void bulkIndexImgDataset(String indexName, String indexType) throws IOException, InterruptedException {
+/*
+ * It allows to index the whole image dataset. It performs the indexing sending a single request to the node.
+ * @param		indexName		-	the name of the index
+ * @param		typeName		-	the name of the type
+ * @throws		IOException, InterruptedException if something goes wrong during the creation of the JSON document
+ */
+	public void indexImgDataset(String indexName, String typeName) throws IOException, InterruptedException {
 		Map<String, String> idJsonDocMap = new HashMap<>();
 
 		for(ImgDescriptor imgDesc : imgDataset)
-			idJsonDocMap.put(imgDesc.getId(), JsonImageBuilder.imageToJson(imgDesc, qFactor));
-		indexManager.bulkIndex(indexName, indexType, idJsonDocMap, true);
-		System.out.print("Indexing.. DONE");
+			idJsonDocMap.put(imgDesc.getId(), JsonImageBuilder.build(DeepFeatureEncoder.encode(imgDesc.getFeatures(), qFactor),
+																		imgDesc.getTags(),
+																		imgDesc.getUri()));
+		bulkIndex(indexName, typeName, idJsonDocMap, true);
 	}
 
 	
 	
-	public IndexResponse index(String indexName, String indexType, ImgDescriptor imgDesc) throws IOException {
-		return indexManager.index(indexName, indexType, imgDesc.getId(), JsonImageBuilder.imageToJson(imgDesc, qFactor));
-	}
+
 	
-	
-	public ImgDescriptor getImgDescriptor(String indexName, String indexType, String imgID) throws IOException, ClassNotFoundException, JsonDocParserFieldNotFoundException {
-		GetResponse getRespQuery = indexManager.get(indexName, indexType, imgID);
-		return ImgDescriptor.fromBytes(JsonDocParser.getBase64EncodedBinaryField(getRespQuery.getSourceAsString(), Fields.BIN));
-	}
-	
-	// search using the already indexed image with name 'queryImgId' as input
-	public List<ImgDescriptor> search(String indexName, String indexType, String queryImgId, int k) throws IOException, ClassNotFoundException, JsonDocParserFieldNotFoundException {
+/*
+ * It performs a visual similarity search using an already indexed image as query.
+ * @param		indexName		-	the name of the index
+ * @param		typeName		-	the name of the type
+ * @param		queryImgId		-	the id of the image used as query
+ * @param		k				-	result's size
+ * @throws		something goes wrong
+ * @return		it returns a list containing the k most relevant images
+ */
+	public List<ImgDescriptor> search(String indexName, String typeName, String queryImgId, int k) throws IOException, ClassNotFoundException, JsonDocParserFieldNotFoundException {
 		List<ImgDescriptor> result = new ArrayList<ImgDescriptor>(k);
 		ImgDescriptor imgDesc;
 		
-		GetResponse getRespQuery = indexManager.get(indexName, indexType, queryImgId);
+		GetResponse getRespQuery = get(indexName, typeName, queryImgId);
 		String imgTxt = JsonDocParser.getStringFieldValue(getRespQuery, Fields.IMG);
 		
-		SearchResponse searchResp = indexManager.search(indexName, indexType, Fields.IMG, imgTxt, k);
+		SearchResponse searchResp = super.queryStringSearch(indexName, typeName, Fields.IMG, imgTxt, k);
 		SearchHit[] srcHits = searchResp.getHits().hits();
 		
 		for(int i=0; i<srcHits.length; i++) {
-			imgDesc = ImgDescriptor.fromBytes(JsonDocParser.getBase64EncodedBinaryField(srcHits[i], Fields.BIN));
+			imgDesc = new ImgDescriptor(srcHits[i].getId(), JsonDocParser.getStringFieldValue(srcHits[i], Fields.TAGS), JsonDocParser.getStringFieldValue(srcHits[i], Fields.URI));
 			imgDesc.setDist(srcHits[i].getScore());
 			result.add(imgDesc);
 		}
 		
 		return result;
-	}
-	
-	
-	
-	public void forceRefresh() {
-		indexManager.forceRefresh();
-	}
-	
-	
-	public void forceRefresh(String indexName) {
-		indexManager.forceRefresh(indexName);
 	}
 }

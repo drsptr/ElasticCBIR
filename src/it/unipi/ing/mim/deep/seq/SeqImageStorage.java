@@ -24,7 +24,7 @@ public class SeqImageStorage {
 				float[] features = extractor.extract(files[i], Parameters.DEEP_LAYER);
 				time += System.currentTimeMillis();
 				System.out.println(time);
-				descs.add(new ImgDescriptor(features, files[i].getName()));
+				descs.add(new ImgDescriptor(features, files[i].getName(), "", imgFolder.toURI() + files[i].getName()));
 			} catch (Exception e) {
 				e.printStackTrace();
 			}

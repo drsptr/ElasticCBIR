@@ -19,8 +19,8 @@ public class ElasticCBIRParameters {
 	public static final int NUMBER_OF_SHARDS = 16;
 	public static final int NUMBER_OF_REPLICAS = 0;
 	public static final Settings INDEX_SETTINGS = Settings.builder()
-																	.put("index.number_of_shards", ElasticCBIRParameters.NUMBER_OF_SHARDS)
-																	.put("index.number_of_replicas", ElasticCBIRParameters.NUMBER_OF_REPLICAS)
+																.put("index.number_of_shards", ElasticCBIRParameters.NUMBER_OF_SHARDS)
+																.put("index.number_of_replicas", ElasticCBIRParameters.NUMBER_OF_REPLICAS)
 															.build();
 
 
@@ -74,7 +74,7 @@ public class ElasticCBIRParameters {
 	};
 	
 	// Sample image
-	public static final String SRC_IMG = "01d6ab62633cc865f54500be71a36cad.jpg";
+	public static final String SRC_IMG = "4888431878";
 	
 	// Quantization factor
 	public static final int Q = 30;
@@ -89,7 +89,7 @@ public class ElasticCBIRParameters {
 	public static final String  LUCENE_PATH = "out/"  + "Lucene_Deep";
 		
 	//k-Nearest Neighbors
-	public static final int K = 50;
+	public static final int K = 100;
 		
 	//HTML Output Parameters
 	public static final  String BASE_URI = "file:///" + ElasticCBIRParameters.SRC_FOLDER.getAbsolutePath() + "/";

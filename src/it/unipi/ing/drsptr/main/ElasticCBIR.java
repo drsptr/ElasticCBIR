@@ -15,6 +15,10 @@ import it.unipi.ing.mim.deep.ImgDescriptor;
 import it.unipi.ing.mim.deep.tools.Output;
 import org.elasticsearch.action.bulk.BulkResponse;
 
+/*
+ * ElasticCBIR is the main class.
+ * @author		Pietro De Rosa
+ */
 public class ElasticCBIR {
 
 	private static void importLuceneIndex(String lucenePath, List<String> storedFields, List<String> termVectorFields) throws IOException, InterruptedException {
@@ -23,13 +27,13 @@ public class ElasticCBIR {
 		indexManager.createIndex(ElasticCBIRParameters.INDEX_NAME, ElasticCBIRParameters.INDEX_SETTINGS);
 		indexManager.putMapping(ElasticCBIRParameters.INDEX_NAME, ElasticCBIRParameters.INDEX_TYPE, MappingBuilder.build(ElasticCBIRParameters.MAPPING_FIELDS));
 		LuceneIndexReader indexReader = new LuceneIndexReader(lucenePath, storedFields, termVectorFields);
-		int docsToProcess = indexReader.getNumDocuments(), processedDocs;
+		int docsToProcess = 10000/*indexReader.getNumDocuments()*/, processedDocs;
 		Map<String, String> idJsonMap = new HashMap<>();
 		boolean failures = false;
 
 		for(processedDocs = 0; processedDocs <= docsToProcess; processedDocs++) {
 			System.out.print("Indexing.. " + processedDocs + "/" + docsToProcess + "\tFailures: " + failures);
-			if(!idJsonMap.isEmpty() && (processedDocs % 300000 == 0 || processedDocs >= docsToProcess)) {
+			if(!idJsonMap.isEmpty() && (processedDocs % 10000 == 0 || processedDocs >= docsToProcess)) {
 				BulkResponse bulkResponse = indexManager.bulkIndex(ElasticCBIRParameters.INDEX_NAME, ElasticCBIRParameters.INDEX_TYPE, idJsonMap, true);
 				failures |= bulkResponse.hasFailures();
 				idJsonMap.clear();
@@ -49,20 +53,14 @@ public class ElasticCBIR {
 	}
 
 	public static void main(String[] args) throws IOException, ClassNotFoundException, JsonDocParserFieldNotFoundException, InterruptedException {
-		/*ElasticImageIndexManager esImgManager = new ElasticImageIndexManager(ElasticCBIRParameters.STORAGE_FILE, ElasticCBIRParameters.Q);
+		ElasticImageIndexManager esImgManager = new ElasticImageIndexManager(ElasticCBIRParameters.Q);
 
 		esImgManager.connectTo(ElasticCBIRParameters.LOOPBACK_ADDRESS, ElasticIndexManager.DEFAULT_PORT);
-		
-		//esImgManager.deleteIndex(ElasticCBIRParameters.INDEX_NAME);
 
-		esImgManager.bulkIndexImgDataset(ElasticCBIRParameters.INDEX_NAME, ElasticCBIRParameters.INDEX_TYPE);
-		
-		esImgManager.forceRefresh(ElasticCBIRParameters.INDEX_NAME);
+		List<ImgDescriptor> result = esImgManager.search(ElasticCBIRParameters.INDEX_NAME, ElasticCBIRParameters.INDEX_TYPE, ElasticCBIRParameters.SRC_IMG, ElasticCBIRParameters.K);
+		Output.toHTML(result, ElasticCBIRParameters.BASE_URI, ElasticCBIRParameters.RESULTS_HTML_LUCENE);
 
-		List<ImgDescriptor> resLucene = esImgManager.search(ElasticCBIRParameters.INDEX_NAME, ElasticCBIRParameters.INDEX_TYPE, ElasticCBIRParameters.SRC_IMG, ElasticCBIRParameters.K);
-		Output.toHTML(resLucene, ElasticCBIRParameters.BASE_URI, ElasticCBIRParameters.RESULTS_HTML_LUCENE);
-
-		esImgManager.close();*/
-		importLuceneIndex(ElasticCBIRParameters.LUCENE_INDEX_PATH, ElasticCBIRParameters.LUCENE_FIELDS_STORED, ElasticCBIRParameters.LUCENE_FIELDS_TV);
+		esImgManager.close();
+		//importLuceneIndex(ElasticCBIRParameters.LUCENE_INDEX_PATH, ElasticCBIRParameters.LUCENE_FIELDS_STORED, ElasticCBIRParameters.LUCENE_FIELDS_TV);
 	}
 }

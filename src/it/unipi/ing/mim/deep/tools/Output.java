@@ -22,8 +22,8 @@ public class Output {
 					html += "</tr>\n";
 				html += "<tr>\n";
 			}
-			html += "<td><img align='center' border='0' height='160' title='" + ids.get(i).getId() + ", dist: "
-			        + ids.get(i).getDist() + "' src='" + baseURI + ids.get(i).getId() + "'></td>\n";
+			html += "<td><img align='center' border='0' height='160' width='160' title=\"Id: " + ids.get(i).getId() + "\nScore: "
+			        + ids.get(i).getDist() + "\" src='" + ids.get(i).getUri() + "'></td>\n";
 		}
 		if (ids.size() != 0)
 			html += "</tr>\n";
