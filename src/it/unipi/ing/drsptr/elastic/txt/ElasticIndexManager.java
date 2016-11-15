@@ -38,7 +38,7 @@ public class ElasticIndexManager {
 	public static final int DEFAULT_PORT = 9300;
 	public static final String DEFAULT_CLUSTER = "elasticsearch";
 
-	private TransportClient client;
+	protected TransportClient client;
 	
 	
 

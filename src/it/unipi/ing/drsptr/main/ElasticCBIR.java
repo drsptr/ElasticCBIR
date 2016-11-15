@@ -25,16 +25,16 @@ public class ElasticCBIR {
 		ElasticIndexManager indexManager = new ElasticIndexManager();
 		indexManager.connectTo(ElasticCBIRParameters.LOOPBACK_ADDRESS, ElasticIndexManager.DEFAULT_PORT);
 		indexManager.createIndex(ElasticCBIRParameters.INDEX_NAME, ElasticCBIRParameters.INDEX_SETTINGS);
-		indexManager.putMapping(ElasticCBIRParameters.INDEX_NAME, ElasticCBIRParameters.INDEX_TYPE, MappingBuilder.build(ElasticCBIRParameters.MAPPING_FIELDS));
+		indexManager.putMapping(ElasticCBIRParameters.INDEX_NAME, ElasticCBIRParameters.TYPE_NAME, MappingBuilder.build(ElasticCBIRParameters.MAPPING_FIELDS));
 		LuceneIndexReader indexReader = new LuceneIndexReader(lucenePath, storedFields, termVectorFields);
-		int docsToProcess = 10000/*indexReader.getNumDocuments()*/, processedDocs;
+		int docsToProcess = 100000/*indexReader.getNumDocuments()*/, processedDocs;
 		Map<String, String> idJsonMap = new HashMap<>();
 		boolean failures = false;
 
 		for(processedDocs = 0; processedDocs <= docsToProcess; processedDocs++) {
 			System.out.print("Indexing.. " + processedDocs + "/" + docsToProcess + "\tFailures: " + failures);
 			if(!idJsonMap.isEmpty() && (processedDocs % 10000 == 0 || processedDocs >= docsToProcess)) {
-				BulkResponse bulkResponse = indexManager.bulkIndex(ElasticCBIRParameters.INDEX_NAME, ElasticCBIRParameters.INDEX_TYPE, idJsonMap, true);
+				BulkResponse bulkResponse = indexManager.bulkIndex(ElasticCBIRParameters.INDEX_NAME, ElasticCBIRParameters.TYPE_NAME, idJsonMap, true);
 				failures |= bulkResponse.hasFailures();
 				idJsonMap.clear();
 				if(processedDocs >= docsToProcess) break;
@@ -57,8 +57,10 @@ public class ElasticCBIR {
 
 		esImgManager.connectTo(ElasticCBIRParameters.LOOPBACK_ADDRESS, ElasticIndexManager.DEFAULT_PORT);
 
-		List<ImgDescriptor> result = esImgManager.search(ElasticCBIRParameters.INDEX_NAME, ElasticCBIRParameters.INDEX_TYPE, ElasticCBIRParameters.SRC_IMG, ElasticCBIRParameters.K);
+		//List<ImgDescriptor> result = esImgManager.visualSimilaritySearch(ElasticCBIRParameters.INDEX_NAME, ElasticCBIRParameters.TYPE_NAME, ElasticCBIRParameters.SRC_IMG, ElasticCBIRParameters.K);
+		List<ImgDescriptor> result = esImgManager.visualSimilaritySearchWithQueryReduction(ElasticCBIRParameters.INDEX_NAME, ElasticCBIRParameters.TYPE_NAME, ElasticCBIRParameters.SRC_IMG, 10, ElasticCBIRParameters.K);
 		Output.toHTML(result, ElasticCBIRParameters.BASE_URI, ElasticCBIRParameters.RESULTS_HTML_LUCENE);
+		//String str = esImgManager.reduceQuery(ElasticCBIRParameters.INDEX_NAME, ElasticCBIRParameters.TYPE_NAME, "3498399398", 3);
 
 		esImgManager.close();
 		//importLuceneIndex(ElasticCBIRParameters.LUCENE_INDEX_PATH, ElasticCBIRParameters.LUCENE_FIELDS_STORED, ElasticCBIRParameters.LUCENE_FIELDS_TV);

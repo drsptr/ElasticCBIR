@@ -2,14 +2,16 @@ package it.unipi.ing.drsptr.elastic.img;
 
 import java.io.File;
 import java.io.IOException;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 import it.unipi.ing.drsptr.elastic.img.tools.DeepFeatureEncoder;
+import org.apache.lucene.index.PostingsEnum;
+import org.apache.lucene.index.TermsEnum;
+import org.apache.lucene.search.spans.SpanWeight;
 import org.elasticsearch.action.get.GetResponse;
 import org.elasticsearch.action.search.SearchResponse;
+import org.elasticsearch.action.termvectors.TermVectorsRequestBuilder;
+import org.elasticsearch.action.termvectors.TermVectorsResponse;
 import org.elasticsearch.common.settings.Settings;
 import org.elasticsearch.search.SearchHit;
 
@@ -124,7 +126,7 @@ public class ElasticImageIndexManager extends ElasticIndexManager {
  * @throws		something goes wrong
  * @return		it returns a list containing the k most relevant images
  */
-	public List<ImgDescriptor> search(String indexName, String typeName, String queryImgId, int k) throws IOException, ClassNotFoundException, JsonDocParserFieldNotFoundException {
+	public List<ImgDescriptor> visualSimilaritySearch(String indexName, String typeName, String queryImgId, int k) throws IOException, ClassNotFoundException, JsonDocParserFieldNotFoundException {
 		List<ImgDescriptor> result = new ArrayList<ImgDescriptor>(k);
 		ImgDescriptor imgDesc;
 		
@@ -141,5 +143,71 @@ public class ElasticImageIndexManager extends ElasticIndexManager {
 		}
 		
 		return result;
+	}
+
+/*
+ * It performs a visual similarity search using an already indexed image as query with the query reduction mechanism.
+ * The query reduction mechanism takes into account only the n most significant features of the image and executes the
+ * query considering only those components. This is done to speed up the query execution time.
+ * @param		indexName		-	the name of the index
+ * @param		typeName		-	the name of the type
+ * @param		queryImgId		-	the id of the image used as query
+ * @param		n				-	query reduction's size
+ * @param		k				-	result's size
+ * @throws		something goes wrong
+ * @return		it returns a list containing the k most relevant images
+ */
+	public List<ImgDescriptor> visualSimilaritySearchWithQueryReduction(String indexName, String typeName, String queryImgId, int n, int k) throws IOException, ClassNotFoundException, JsonDocParserFieldNotFoundException {
+		List<ImgDescriptor> result = new ArrayList<ImgDescriptor>(k);
+		ImgDescriptor imgDesc;
+
+		String imgTxt = reduceQuery(indexName, typeName, queryImgId, n);
+
+		SearchResponse searchResp = super.queryStringSearch(indexName, typeName, Fields.IMG, imgTxt, k);
+		SearchHit[] srcHits = searchResp.getHits().hits();
+
+		for(int i=0; i<srcHits.length; i++) {
+			imgDesc = new ImgDescriptor(srcHits[i].getId(), JsonDocParser.getStringFieldValue(srcHits[i], Fields.TAGS), JsonDocParser.getStringFieldValue(srcHits[i], Fields.URI));
+			imgDesc.setDist(srcHits[i].getScore());
+			result.add(imgDesc);
+		}
+
+		return result;
+	}
+
+/*
+ * It performs the query reduction.
+ * @param		indexName		-	the name of the index
+ * @param		typeName		-	the name of the type
+ * @param		queryImgId		-	the id of the image used as query
+ * @param		n				-	query reduction's size
+ * @throws		something goes wrong
+ * @return		it returns the encoded image text for the reducted query
+ */
+	private String reduceQuery(String indexName, String typeName, String queryImgId, int n) throws IOException {
+		PostingsEnum postings = null;
+		String reducedQuery = "";
+
+		TermVectorsResponse termVectorsResponse = client.prepareTermVectors()
+				.setIndex(indexName)
+				.setType(typeName)
+				.setId(queryImgId)
+				.get();
+
+		TermsEnum iterator = termVectorsResponse.getFields().terms(Fields.IMG).iterator();
+
+		List<String> termVectorList = new ArrayList<>();
+		while(iterator.next() != null) {
+			postings = iterator.postings(postings, PostingsEnum.FREQS);
+			termVectorList.add(postings.freq() + ";" + iterator.term().utf8ToString());
+		}
+		Collections.sort(termVectorList, Collections.reverseOrder());
+
+		for (int i=0; i<n && i<termVectorList.size(); i++) {
+			String[] freqTerm = termVectorList.get(i).split(";");
+			reducedQuery += new String(new char[(int)Integer.parseInt(freqTerm[0])]).replace("\0", freqTerm[1] + " ");
+		}
+
+		return reducedQuery;
 	}
 }
