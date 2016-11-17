@@ -5,12 +5,13 @@ import java.io.IOException;
 import java.util.*;
 
 import it.unipi.ing.drsptr.elastic.img.tools.DeepFeatureEncoder;
+import it.unipi.ing.drsptr.elastic.utilities.CosineSimilarity;
 import org.apache.lucene.index.PostingsEnum;
+import org.apache.lucene.index.Terms;
 import org.apache.lucene.index.TermsEnum;
-import org.apache.lucene.search.spans.SpanWeight;
+import org.apache.lucene.search.similarities.ClassicSimilarity;
 import org.elasticsearch.action.get.GetResponse;
 import org.elasticsearch.action.search.SearchResponse;
-import org.elasticsearch.action.termvectors.TermVectorsRequestBuilder;
 import org.elasticsearch.action.termvectors.TermVectorsResponse;
 import org.elasticsearch.common.settings.Settings;
 import org.elasticsearch.search.SearchHit;
@@ -185,29 +186,35 @@ public class ElasticImageIndexManager extends ElasticIndexManager {
  * @return		it returns the encoded image text for the reducted query
  */
 	private String reduceQuery(String indexName, String typeName, String queryImgId, int n) throws IOException {
+		ClassicSimilarity similarity = new ClassicSimilarity();
+		float tf, idf, tfidf;
+		long docCount = getDocumentCount(indexName, typeName);
 		PostingsEnum postings = null;
 		String reducedQuery = "";
 
-		TermVectorsResponse termVectorsResponse = client.prepareTermVectors()
-				.setIndex(indexName)
-				.setType(typeName)
-				.setId(queryImgId)
-				.get();
-
-		TermsEnum iterator = termVectorsResponse.getFields().terms(Fields.IMG).iterator();
+		TermsEnum iterator = getTermVector(indexName, typeName, queryImgId, Fields.IMG, true).iterator();
 
 		List<String> termVectorList = new ArrayList<>();
 		while(iterator.next() != null) {
 			postings = iterator.postings(postings, PostingsEnum.FREQS);
-			termVectorList.add(postings.freq() + ";" + iterator.term().utf8ToString());
+			tf = similarity.tf(postings.freq());
+			idf = similarity.idf(iterator.docFreq(), docCount);
+			tfidf = tf * idf;
+			termVectorList.add(tfidf + ";" + postings.freq() + ";" + iterator.term().utf8ToString());
 		}
 		Collections.sort(termVectorList, Collections.reverseOrder());
 
 		for (int i=0; i<n && i<termVectorList.size(); i++) {
-			String[] freqTerm = termVectorList.get(i).split(";");
-			reducedQuery += new String(new char[(int)Integer.parseInt(freqTerm[0])]).replace("\0", freqTerm[1] + " ");
+			String[] tfidfFreqTerm = termVectorList.get(i).split(";");
+			reducedQuery += new String(new char[(int)Integer.parseInt(tfidfFreqTerm[1])]).replace("\0", tfidfFreqTerm[2] + " ");
 		}
 
 		return reducedQuery;
+	}
+
+	public void prova (String indexName, String typeName, String doc1, String doc2) throws IOException {
+		Terms t1 = getTermVector(indexName, typeName, doc1, Fields.IMG, true);
+		Terms t2 = getTermVector(indexName, typeName, doc2, Fields.IMG, true);
+		CosineSimilarity.getSimilarity(t1, t2, 2);
 	}
 }

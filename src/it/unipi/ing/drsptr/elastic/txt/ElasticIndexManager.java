@@ -7,6 +7,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ExecutionException;
 
+import org.apache.lucene.index.Terms;
 import org.elasticsearch.action.bulk.BulkRequestBuilder;
 import org.elasticsearch.action.bulk.BulkResponse;
 import org.elasticsearch.action.delete.DeleteResponse;
@@ -15,6 +16,7 @@ import org.elasticsearch.action.index.IndexRequest;
 import org.elasticsearch.action.index.IndexResponse;
 import org.elasticsearch.action.search.SearchResponse;
 import org.elasticsearch.action.search.SearchType;
+import org.elasticsearch.action.termvectors.TermVectorsResponse;
 import org.elasticsearch.action.update.UpdateRequest;
 import org.elasticsearch.action.update.UpdateResponse;
 import org.elasticsearch.client.transport.TransportClient;
@@ -81,7 +83,7 @@ public class ElasticIndexManager {
 
 
 /*
- * It allows your client connect to an elasticsearch node with a given IP address and listening port.
+ * It allows your client to connect to an elasticsearch node with a given IP address and listening port.
  * @param		address			-	the address of the elasticsearch node you want to connect to
  * @param		port			-	the listening port of the elasticsearch node you want to connect to
  */
@@ -120,7 +122,7 @@ public class ElasticIndexManager {
 	}
 
 /*
- * It closes all connections with all the elasticsearch nodes of the cluster and returns.
+ * It closes all the connections with all the elasticsearch nodes of the cluster and returns.
  */
 	public void close() {
 		client.close();
@@ -193,7 +195,78 @@ public class ElasticIndexManager {
 		return client.prepareGet(indexName, typeName, docId)
 						.get();
 	}
-	
+
+/*
+ * It allows to get the total number of documents stored in a given index.
+ * @param		indexName		-	the name of the index
+ * @return		the total number of documents stored in the index
+ */
+	public long getDocumentCount(String indexName) {
+		SearchResponse searchResponse = client.prepareSearch(indexName)
+				.setQuery(QueryBuilders.matchAllQuery())
+				.get();
+
+		return searchResponse.getHits().getTotalHits();
+	}
+
+/*
+ * It allows to get the total number of documents stored in a given type of a given index.
+ * @param		indexName		-	the name of the index
+ * @param		typeName		-	the name of the type
+ * @return		the total number of documents stored in the type of the the index
+ */
+	public long getDocumentCount(String indexName, String typeName) {
+		SearchResponse searchResponse = client.prepareSearch(indexName)
+													.setTypes(typeName)
+													.setQuery(QueryBuilders.matchAllQuery())
+													.get();
+
+		return searchResponse.getHits().getTotalHits();
+	}
+
+/*
+ * It allows to get the term vector for a given document. The field of the document from which you want to get the tv
+ * has to have term vector property enables, otherwise it is not possible to retrieve it.
+ * @param		indexName		-	the name of the index
+ * @param		typeName		-	the name of the type
+ * @param		docId			-	the id of the document
+ * @param		dfs				-	true for distributed frequencies, false for shard statistics
+ * @throws		IOException if cannnot perform getFields()
+ * @return		the response containing the term vector
+ */
+	public TermVectorsResponse getTermVector(String indexName, String typeName, String docId, boolean dfs) {
+		return client.prepareTermVectors()
+				.setIndex(indexName)
+				.setType(typeName)
+				.setId(docId)
+				.setTermStatistics(true)
+				.setDfs(dfs)
+				.get();
+	}
+
+/*
+ * It allows to get the term vector for a given document. The field of the document from which you want to get the tv
+ * has to have term vector property enables, otherwise it is not possible to retrieve it.
+ * @param		indexName		-	the name of the index
+ * @param		typeName		-	the name of the type
+ * @param		docId			-	the id of the document
+ * @param		fieldName		-	the name of the field
+ * @param		dfs				-	true for distributed frequencies, false for shard statistics
+ * @throws		IOException if cannnot perform getFields()
+ * @return		the org.apache.lucene.index.Terms class containing the term vector
+ */
+	public Terms getTermVector(String indexName, String typeName, String docId, String fieldName, boolean dfs) throws IOException{
+		TermVectorsResponse termVectorsResponse = client.prepareTermVectors()
+														.setIndex(indexName)
+														.setType(typeName)
+														.setId(docId)
+														.setTermStatistics(true)
+														.setDfs(dfs)
+														.get();
+
+		return termVectorsResponse.getFields().terms(fieldName);
+	}
+
 /*
  * It performs a query string search on the specified index and type.
  * @param		indexName		-	the name of the index
