@@ -57,22 +57,18 @@ public class ElasticCBIR {
 
 		esImgManager.connectTo(ElasticCBIRParameters.LOOPBACK_ADDRESS, ElasticIndexManager.DEFAULT_PORT);
 
-		//List<ImgDescriptor> result = esImgManager.visualSimilaritySearch(ElasticCBIRParameters.INDEX_NAME,
-		// 																	ElasticCBIRParameters.TYPE_NAME,
-		// 																	ElasticCBIRParameters.SRC_IMG,
-		// 																	ElasticCBIRParameters.K);
+		/*List<ImgDescriptor> result = esImgManager.visualSearch(ElasticCBIRParameters.INDEX_NAME,
+																ElasticCBIRParameters.TYPE_NAME,
+																ElasticCBIRParameters.SRC_IMG,
+																ElasticCBIRParameters.K);*/
 
-		/*List<ImgDescriptor> result = esImgManager.visualSimilaritySearchWithQueryReduction(ElasticCBIRParameters.INDEX_NAME,
-																							ElasticCBIRParameters.TYPE_NAME,
+		List<ImgDescriptor> result = esImgManager.visualSearchQRReordered(ElasticCBIRParameters.INDEX_NAME,
+																			ElasticCBIRParameters.TYPE_NAME,
 																							ElasticCBIRParameters.SRC_IMG,
-																							ElasticCBIRParameters.REDUCTION,
-																							ElasticCBIRParameters.K);
-		Output.toHTML(result, ElasticCBIRParameters.BASE_URI, ElasticCBIRParameters.RESULTS_HTML_LUCENE);*/
-
-		esImgManager.prova(ElasticCBIRParameters.INDEX_NAME,
-							ElasticCBIRParameters.TYPE_NAME,
-							"1004601962",
-							"54388393");
+																							ElasticCBIRParameters.Lq,
+																							ElasticCBIRParameters.K,
+																							ElasticCBIRParameters.Cr);
+		Output.toHTML(result, ElasticCBIRParameters.BASE_URI, ElasticCBIRParameters.RESULTS_HTML_LUCENE);
 
 		esImgManager.close();
 		//importLuceneIndex(ElasticCBIRParameters.LUCENE_INDEX_PATH, ElasticCBIRParameters.LUCENE_FIELDS_STORED, ElasticCBIRParameters.LUCENE_FIELDS_TV);

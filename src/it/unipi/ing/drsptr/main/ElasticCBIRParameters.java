@@ -74,13 +74,16 @@ public class ElasticCBIRParameters {
 	};
 	
 	// Sample image
-	public static final String SRC_IMG = "6911017243";
+	public static final String SRC_IMG = "4888431878";
 	
 	// Quantization factor
 	public static final int Q = 30;
 
 	// Reduction factor
-	public static final int REDUCTION = 10;
+	public static final int Lq = 10;
+
+	// Reordering factor
+	public static final int Cr = 10;
 		
 	//Image Source Folder
 	public static final File SRC_FOLDER = new File("data/img");

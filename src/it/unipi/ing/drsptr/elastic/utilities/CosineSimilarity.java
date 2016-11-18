@@ -64,20 +64,7 @@ public class CosineSimilarity {
 
     public static float getSimilarity(Terms terms1, Terms terms2, long docCount) throws IOException {
         // Terms to HashMap
-        //Map<String, Float> tVect1 = tfidfTermMap(terms1, docCount), tVect2 = tfidfTermMap(terms2, docCount);
-        Map<String, Float> tVect1 = new HashMap<>();
-        tVect1.put("f1", 4f);
-        tVect1.put("f2", 3f);
-        tVect1.put("f3", 4f);
-        tVect1.put("f4", 18f);
-        tVect1.put("f5", 2f);
-
-        Map<String, Float> tVect2 = new HashMap<>();
-        tVect2.put("f3", 4f);
-        tVect2.put("f7", 3f);
-        tVect2.put("f8", 9f);
-        tVect2.put("f6", 18f);
-        tVect2.put("f5", 2f);
+        Map<String, Float> tVect1 = tfidfTermMap(terms1, docCount), tVect2 = tfidfTermMap(terms2, docCount);
 
         // get the common terms from both the term vectors and sort them
         List<String> commonTerms = new ArrayList<>(tVect1.keySet());
@@ -88,13 +75,6 @@ public class CosineSimilarity {
         float[] v1 = tfidfVector(tVect1, commonTerms);
         float[] v2 = tfidfVector(tVect2, commonTerms);
 
-        for(int i=0; i<v1.length; i++)
-            System.out.println(v1[i] + "\t" + v2[i]);
-
         return dotProduct(v1, v2) / (normL2(v1) * normL2(v2));
-    }
-
-    public static void main(String[] args) throws IOException {
-        System.out.println(getSimilarity(null, null, 0));
     }
 }

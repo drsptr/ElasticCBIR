@@ -127,7 +127,7 @@ public class ElasticImageIndexManager extends ElasticIndexManager {
  * @throws		something goes wrong
  * @return		it returns a list containing the k most relevant images
  */
-	public List<ImgDescriptor> visualSimilaritySearch(String indexName, String typeName, String queryImgId, int k) throws IOException, ClassNotFoundException, JsonDocParserFieldNotFoundException {
+	public List<ImgDescriptor> visualSearch(String indexName, String typeName, String queryImgId, int k) throws IOException, ClassNotFoundException, JsonDocParserFieldNotFoundException {
 		List<ImgDescriptor> result = new ArrayList<ImgDescriptor>(k);
 		ImgDescriptor imgDesc;
 		
@@ -158,7 +158,7 @@ public class ElasticImageIndexManager extends ElasticIndexManager {
  * @throws		something goes wrong
  * @return		it returns a list containing the k most relevant images
  */
-	public List<ImgDescriptor> visualSimilaritySearchWithQueryReduction(String indexName, String typeName, String queryImgId, int n, int k) throws IOException, ClassNotFoundException, JsonDocParserFieldNotFoundException {
+	public List<ImgDescriptor> visualSearchQR(String indexName, String typeName, String queryImgId, int n, int k) throws IOException, ClassNotFoundException, JsonDocParserFieldNotFoundException {
 		List<ImgDescriptor> result = new ArrayList<ImgDescriptor>(k);
 		ImgDescriptor imgDesc;
 
@@ -175,6 +175,27 @@ public class ElasticImageIndexManager extends ElasticIndexManager {
 
 		return result;
 	}
+
+/*
+ * It performs a visual similarity search using an already indexed image as query with the query reduction mechanism.
+ * Moreover, it reorder the result using the cosine similarity. It is done to get a better precision in the result.
+ * In particular, it searches for the first (k * rFactor) images, then reorders them and finally returns
+ * the first k as result.
+ * @param		indexName		-	the name of the index
+ * @param		typeName		-	the name of the type
+ * @param		queryImgId		-	the id of the image used as query
+ * @param		n				-	query reduction's size
+ * @param		k				-	result's size
+ * @param		rFactor			-	reordering factor
+ * @throws		something goes wrong
+ * @return		it returns a list containing the k most relevant images
+ */
+	public List<ImgDescriptor> visualSearchQRReordered(String indexName, String typeName, String queryImgId, int n, int k, int rFactor) throws IOException, ClassNotFoundException, JsonDocParserFieldNotFoundException {
+		List<ImgDescriptor> result = visualSearchQR(indexName,typeName,queryImgId, n, k * rFactor);
+
+		return reorder(indexName, typeName, queryImgId, result.subList(0, k));
+	}
+
 
 /*
  * It performs the query reduction.
@@ -212,9 +233,22 @@ public class ElasticImageIndexManager extends ElasticIndexManager {
 		return reducedQuery;
 	}
 
-	public void prova (String indexName, String typeName, String doc1, String doc2) throws IOException {
-		Terms t1 = getTermVector(indexName, typeName, doc1, Fields.IMG, true);
-		Terms t2 = getTermVector(indexName, typeName, doc2, Fields.IMG, true);
-		CosineSimilarity.getSimilarity(t1, t2, 2);
+/*
+ * It reorders the result.
+ */
+	private List<ImgDescriptor> reorder(String indexName, String typeName, String queryImgId, List<ImgDescriptor> toOrder) throws IOException {
+		Terms queryTV = getTermVector(indexName, typeName, queryImgId, Fields.IMG, true), objTV;
+		long docCount = getDocumentCount(indexName, typeName);
+		float cosSim;
+
+		for(ImgDescriptor imgDesc : toOrder) {
+			objTV = getTermVector(indexName, typeName, imgDesc.getId(), Fields.IMG, true);
+			cosSim = CosineSimilarity.getSimilarity(queryTV, objTV, docCount);
+			imgDesc.setDist(cosSim);
+		}
+
+		Collections.sort(toOrder, Collections.reverseOrder());
+
+		return toOrder;
 	}
 }
