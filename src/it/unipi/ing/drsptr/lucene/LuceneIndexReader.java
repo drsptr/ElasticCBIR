@@ -87,11 +87,11 @@ public class LuceneIndexReader {
  * @return		the reconstructed text from the term vector
  */
 	public static String getTextFromTermVector(Map<String, Long> termVector) {
-		String result = "";
+		String text = "";
 
 		for(String term : termVector.keySet())
-			result += new String(new char[(int)(long)termVector.get(term)]).replace("\0", term + " ");
+			text += new String(new char[(int)(long)termVector.get(term)]).replace("\0", term + " ");
 
-		return result;
+		return text;
 	}
 }

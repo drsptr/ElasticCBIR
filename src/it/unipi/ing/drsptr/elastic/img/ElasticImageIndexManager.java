@@ -193,7 +193,7 @@ public class ElasticImageIndexManager extends ElasticIndexManager {
 	public List<ImgDescriptor> visualSearchQRReordered(String indexName, String typeName, String queryImgId, int n, int k, int rFactor) throws IOException, ClassNotFoundException, JsonDocParserFieldNotFoundException {
 		List<ImgDescriptor> result = visualSearchQR(indexName,typeName,queryImgId, n, k * rFactor);
 
-		return reorder(indexName, typeName, queryImgId, result.subList(0, k));
+		return reorder(indexName, typeName, queryImgId, result, k);
 	}
 
 
@@ -234,9 +234,16 @@ public class ElasticImageIndexManager extends ElasticIndexManager {
 	}
 
 /*
- * It reorders the result.
+ * It reorders the result set using the cosine similarity and returns the first k elements.
+ * @param		indexName		-	the name of the index
+ * @param		typeName		-	the name of the type
+ * @param		queryImgId		-	the id of the image used as query
+ * @param		toOrder			-	the set to reorder
+ * @param		k				-	the number of elements to return
+ * @throws		something goes wrong
+ * @return		the first k elements with the highest cosine similarity score
  */
-	private List<ImgDescriptor> reorder(String indexName, String typeName, String queryImgId, List<ImgDescriptor> toOrder) throws IOException {
+	private List<ImgDescriptor> reorder(String indexName, String typeName, String queryImgId, List<ImgDescriptor> toOrder, int k) throws IOException {
 		Terms queryTV = getTermVector(indexName, typeName, queryImgId, Fields.IMG, true), objTV;
 		long docCount = getDocumentCount(indexName, typeName);
 		float cosSim;
@@ -249,6 +256,6 @@ public class ElasticImageIndexManager extends ElasticIndexManager {
 
 		Collections.sort(toOrder, Collections.reverseOrder());
 
-		return toOrder;
+		return toOrder.subList(0, k);
 	}
 }

@@ -10,11 +10,19 @@ import java.util.*;
 
 /*
  * CosineSimilarity allows you to compute the cosine similarity, starting from the terms vectors.
- * Moreover, it includes other utility functions, such as L2 distance computation, norm computation etc.
+ * @author		Pietro De Rosa
  */
 public class CosineSimilarity {
 
-    public static Map<String, Float> tfidfTermMap(Terms terms, long docCount) throws IOException{
+/*
+ * Given a terms vector as a Terms object, it returns a map where, for each term in the terms vectos, there is the
+ * tf-idf weight.
+ * @param		terms			-	the terms vector to process
+ * @param       docCount        -   the total number of documents in the index; it is needed to compute the idf
+ * @throws      something goes wrong
+ * @return      the following map: <term, tf-idf weight>
+ */
+    private static Map<String, Float> tfidfTermMap(Terms terms, long docCount) throws IOException{
         ClassicSimilarity similarity = new ClassicSimilarity();
         Map<String, Float> termVector = new HashMap<>();
         TermsEnum iterator = terms.iterator();
@@ -31,16 +39,32 @@ public class CosineSimilarity {
         return termVector;
     }
 
-    public static float[] tfidfVector(Map<String, Float> tfidfTermMap, List<String> terms) {
-        float[] vector = new float[terms.size()];
+/*
+ * Given a list of terms and the map <term, tf-idf weight>, it builds the corresponding float vector. Notice that if
+ * a term is not contained in the map, its corresponding tf-idf weight is set to 0.
+ * @param       tfidfTermMap    -   the map <term, tf-idf weight>
+ * @param       listOfTerms     -   the list of terms
+ * @return      the float tf-idf vector
+ */
+    private static float[] tfidfVector(Map<String, Float> tfidfTermMap, List<String> listOfTerms) {
+        float[] vector = new float[listOfTerms.size()];
+        Set<String> keySet = tfidfTermMap.keySet();
+        String currentTerm;
 
-        for(int i=0; i<terms.size(); i++)
-            vector[i] = tfidfTermMap.get(terms.get(i));
+        for(int i=0; i<listOfTerms.size(); i++){
+            currentTerm = listOfTerms.get(i);
+            vector[i] = (keySet.contains(currentTerm))? tfidfTermMap.get(currentTerm) : 0f;
+        }
 
         return vector;
     }
 
-    public static float normL2(float[] vector) {
+/*
+ * Given a float vector, it computes the L2 norm.
+ * @param       vector          -   the vector you want to compute the L2 norm
+ * @ return     the L2 norm of the given vector
+ */
+    private static float normL2(float[] vector) {
         float norm2 = 0;
         for (int i = 0; i < vector.length; i++) {
             norm2 += Math.pow(vector[i], 2);
@@ -50,10 +74,13 @@ public class CosineSimilarity {
         return norm2;
     }
 
-    public static float dotProduct(float[] vect1, float[] vect2) {
-        if(vect1.length != vect2.length)
-            return -1f;
-
+/*
+ * Given two vectors, it computes the dot product.
+ * @param       vect1           -   the 1st vector
+ * @param       vect2           -   the 2nd vector
+ * @return      it returns the dot product
+ */
+    private static float dotProduct(float[] vect1, float[] vect2) {
         float dotProd = 0;
 
         for(int i=0; i<vect1.length; i++)
@@ -62,18 +89,27 @@ public class CosineSimilarity {
         return dotProd;
     }
 
+/*
+ * Given two terms vector and the total number of documents in the index, it computes the cosine similarity.
+ * It uses the tf-idf weight as components of the vectors.
+ * @param       terms1          -   the 1st terms vector
+ * @param       terms2          -   the 2nd terms vector
+ * @param       docCount        -   the total number of documents contained in the index
+ * @throws      something goes wrong
+ * @return      the cosine similarity between the two terms vectors
+ */
     public static float getSimilarity(Terms terms1, Terms terms2, long docCount) throws IOException {
         // Terms to HashMap
         Map<String, Float> tVect1 = tfidfTermMap(terms1, docCount), tVect2 = tfidfTermMap(terms2, docCount);
 
-        // get the common terms from both the term vectors and sort them
-        List<String> commonTerms = new ArrayList<>(tVect1.keySet());
-        commonTerms.retainAll(tVect2.keySet());
-        Collections.sort(commonTerms);
+        // get the union set from both the terms vectors and sort them
+        List<String> unionTerms = new ArrayList<>(tVect1.keySet());
+        unionTerms.addAll(tVect2.keySet());
+        Collections.sort(unionTerms);
 
         // get the tfidf vectors
-        float[] v1 = tfidfVector(tVect1, commonTerms);
-        float[] v2 = tfidfVector(tVect2, commonTerms);
+        float[] v1 = tfidfVector(tVect1, unionTerms);
+        float[] v2 = tfidfVector(tVect2, unionTerms);
 
         return dotProduct(v1, v2) / (normL2(v1) * normL2(v2));
     }

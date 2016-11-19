@@ -24,21 +24,6 @@ public class ElasticCBIRParameters {
 															.build();
 
 
-	// Lucene imported index settings
-	public static final String LUCENE_INDEX_PATH = "C://Users//Pietro//Desktop//DeepLuceneYFCC100M_Q30_merged";
-	public static final String LUCENE_FIELDS_ID = "ID"; // Indexed (docs), Stored, Norms
-	public static final String LUCENE_FIELDS_IMG = "DEEP"; // Indexed (docs, freqs), term Vector, Norms
-	public static final String LUCENE_FIELDS_TAGS = "TXT"; // Indexed (docs, freqs), Stored, term Vector, Norms
-	public static final String LUCENE_FIELDS_URI = "URI"; // Indexed (docs), Stored, Norms
-	public static final List<String> LUCENE_FIELDS_STORED = Collections.unmodifiableList(	Arrays.asList(	LUCENE_FIELDS_ID,
-																											LUCENE_FIELDS_TAGS,
-																											LUCENE_FIELDS_URI
-																						));
-	public static final List<String> LUCENE_FIELDS_TV = Collections.unmodifiableList(	Arrays.asList(	LUCENE_FIELDS_IMG
-																						));
-
-
-
 	// Elasticsearch Mapping
 	public static final Map<String, Map<String, String>> MAPPING_FIELDS = new HashMap<String, Map<String, String>>(Fields.NUMBER_OF_FIELDS) {
 		{
@@ -72,32 +57,46 @@ public class ElasticCBIRParameters {
 			put(Fields.URI, propURI);
 		}
 	};
-	
-	// Sample image
-	public static final String SRC_IMG = "4888431878";
-	
-	// Quantization factor
-	public static final int Q = 30;
 
-	// Reduction factor
-	public static final int Lq = 10;
 
-	// Reordering factor
-	public static final int Cr = 10;
-		
-	//Image Source Folder
-	public static final File SRC_FOLDER = new File("data/img");
-		
-	//Features Storage File
-	public static final File STORAGE_FILE = new File("data/deep.seq.dat");
 
-	//Lucene Index
-	public static final String  LUCENE_PATH = "out/"  + "Lucene_Deep";
-		
-	//k-Nearest Neighbors
-	public static final int K = 100;
-		
+	// Lucene imported index settings
+	public static final String LUCENE_INDEX_PATH = "C://Users//Pietro//Desktop//DeepLuceneYFCC100M_Q30_merged";
+	public static final String LUCENE_FIELDS_ID = "ID"; // Indexed (docs), Stored, Norms
+	public static final String LUCENE_FIELDS_IMG = "DEEP"; // Indexed (docs, freqs), term Vector, Norms
+	public static final String LUCENE_FIELDS_TAGS = "TXT"; // Indexed (docs, freqs), Stored, term Vector, Norms
+	public static final String LUCENE_FIELDS_URI = "URI"; // Indexed (docs), Stored, Norms
+	public static final List<String> LUCENE_FIELDS_STORED = Collections.unmodifiableList(	Arrays.asList(	LUCENE_FIELDS_ID,
+																											LUCENE_FIELDS_TAGS,
+																											LUCENE_FIELDS_URI
+																						));
+	public static final List<String> LUCENE_FIELDS_TV = Collections.unmodifiableList(	Arrays.asList(	LUCENE_FIELDS_IMG
+																						));
+
+
+
+	// Local dataset settings
+		// Quantization factor
+			public static final int Q = 30;
+		//Image Source Folder
+			public static final File SRC_FOLDER = new File("data/img");
+		//Features Storage File
+			public static final File STORAGE_FILE = new File("data/deep.seq.dat");
+
+
+
+	// Search settings
+		// Sample image
+			public static final String SRC_IMG = "4888431878";
+		//k-Nearest Neighbors
+			public static final int K = 100;
+		// Reduction factor
+			public static final int Lq = 10;
+		// Reordering factor
+			public static final int Cr = 10;
+
+
+
 	//HTML Output Parameters
-	public static final  String BASE_URI = "file:///" + ElasticCBIRParameters.SRC_FOLDER.getAbsolutePath() + "/";
-	public static final File RESULTS_HTML_LUCENE = new File("out/deep.lucene.html");
+	public static final File RESULTS_HTML = new File("out/results.html");
 }

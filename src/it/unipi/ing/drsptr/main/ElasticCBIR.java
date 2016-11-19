@@ -68,7 +68,7 @@ public class ElasticCBIR {
 																							ElasticCBIRParameters.Lq,
 																							ElasticCBIRParameters.K,
 																							ElasticCBIRParameters.Cr);
-		Output.toHTML(result, ElasticCBIRParameters.BASE_URI, ElasticCBIRParameters.RESULTS_HTML_LUCENE);
+		Output.toHTML(result, ElasticCBIRParameters.RESULTS_HTML);
 
 		esImgManager.close();
 		//importLuceneIndex(ElasticCBIRParameters.LUCENE_INDEX_PATH, ElasticCBIRParameters.LUCENE_FIELDS_STORED, ElasticCBIRParameters.LUCENE_FIELDS_TV);
