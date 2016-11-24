@@ -5,7 +5,10 @@ import java.net.InetAddress;
 import java.util.*;
 
 import it.unipi.ing.drsptr.elastic.img.tools.Fields;
+import it.unipi.ing.drsptr.elastic.txt.ElasticIndexManager;
 import org.elasticsearch.common.settings.Settings;
+import org.elasticsearch.common.unit.ByteSizeUnit;
+import org.elasticsearch.common.unit.ByteSizeValue;
 
 public class ElasticCBIRParameters {
 
@@ -16,8 +19,8 @@ public class ElasticCBIRParameters {
 	// Elasticsearch settings
 	public static final String INDEX_NAME = "cbir";
 	public static final String TYPE_NAME = "yfcc100m";
-	public static final int NUMBER_OF_SHARDS = 1;
-	public static final int NUMBER_OF_REPLICAS = 0;
+	public static final int NUMBER_OF_SHARDS = 16;
+	public static final int NUMBER_OF_REPLICAS = 1;
 	public static final Settings INDEX_SETTINGS = Settings.builder()
 																.put("index.number_of_shards", ElasticCBIRParameters.NUMBER_OF_SHARDS)
 																.put("index.number_of_replicas", ElasticCBIRParameters.NUMBER_OF_REPLICAS)
@@ -25,7 +28,7 @@ public class ElasticCBIRParameters {
 
 
 	// Elasticsearch Mapping
-	public static final Map<String, Map<String, String>> MAPPING_FIELDS = new HashMap<String, Map<String, String>>(Fields.NUMBER_OF_FIELDS) {
+	public static final Map<String, Map<String, String>> MAPPING_FIELDS = new HashMap<String, Map<String, String>>() {
 		{
 			Map<String, String> propIMG = new HashMap<String, String>() {
 				{
@@ -55,6 +58,17 @@ public class ElasticCBIRParameters {
 			put(Fields.IMG, propIMG);
 			put(Fields.TAGS, propTAGS);
 			put(Fields.URI, propURI);
+		}
+	};
+
+
+
+	// Elasticsearch BulkProcessor settings
+	public static final Map<String, Object> BULK_PROCESSOR_SETTINGS = new HashMap<String, Object>() {
+		{
+			put(ElasticIndexManager.BULK_PROC_ACTIONS, new Integer(10000));
+			put(ElasticIndexManager.BULK_PROC_SIZE, new ByteSizeValue(1, ByteSizeUnit.GB));
+			put(ElasticIndexManager.BULK_PROC_REQS, 5);
 		}
 	};
 
@@ -93,7 +107,7 @@ public class ElasticCBIRParameters {
 		// Reduction factor
 			public static final int Lq = 10;
 		// Reordering factor
-			public static final int Cr = 10;
+			public static final int Cr = 2;
 
 
 

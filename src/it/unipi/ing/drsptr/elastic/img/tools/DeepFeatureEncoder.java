@@ -1,6 +1,6 @@
 package it.unipi.ing.drsptr.elastic.img.tools;
 
-/*
+/**
  * DeepFeatureEncoder is a class with static methods that allows to get an encoded text representing the given image,
  * starting from its deep features normalized vector. This transformation allows to search for visual similar images
  * using standard search engines.
@@ -8,7 +8,7 @@ package it.unipi.ing.drsptr.elastic.img.tools;
  */
 public class DeepFeatureEncoder {
 
-/*
+/**
  * This static method allows to get the quantized vector from the L2 normalized deep features vector. It simply multiply
  * each component of the vector for a quantization factor.
  * @param		normL2features	-	the L2 normalized deep features vector
@@ -19,11 +19,11 @@ public class DeepFeatureEncoder {
 		int[] qVector = new int[normL2features.length];
 		for(int i=0; i<qVector.length; i++)
 			qVector[i] = (int)Math.floor(normL2features[i] * qFactor);
-		
+
 		return qVector;
 	}
 
-/*
+/**
  * This static method returns the encoded text representing the image.
  * @param		normL2features	-	the L2 normalized deep features vector
  * @param		qFactor			-	the quantization factor

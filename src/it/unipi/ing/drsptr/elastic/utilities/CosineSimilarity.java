@@ -8,19 +8,18 @@ import org.apache.lucene.search.similarities.ClassicSimilarity;
 import java.io.IOException;
 import java.util.*;
 
-/*
+/**
  * CosineSimilarity allows you to compute the cosine similarity, starting from the terms vectors.
  * @author		Pietro De Rosa
  */
 public class CosineSimilarity {
 
-/*
+/**
  * Given a terms vector as a Terms object, it returns a map where, for each term in the terms vectos, there is the
  * tf-idf weight.
  * @param		terms			-	the terms vector to process
  * @param       docCount        -   the total number of documents in the index; it is needed to compute the idf
- * @throws      something goes wrong
- * @return      the following map: <term, tf-idf weight>
+ * * @return      the following map: <term, tf-idf weight>
  */
     private static Map<String, Float> tfidfTermMap(Terms terms, long docCount) throws IOException{
         ClassicSimilarity similarity = new ClassicSimilarity();
@@ -39,7 +38,7 @@ public class CosineSimilarity {
         return termVector;
     }
 
-/*
+/**
  * Given a list of terms and the map <term, tf-idf weight>, it builds the corresponding float vector. Notice that if
  * a term is not contained in the map, its corresponding tf-idf weight is set to 0.
  * @param       tfidfTermMap    -   the map <term, tf-idf weight>
@@ -59,7 +58,7 @@ public class CosineSimilarity {
         return vector;
     }
 
-/*
+/**
  * Given a float vector, it computes the L2 norm.
  * @param       vector          -   the vector you want to compute the L2 norm
  * @ return     the L2 norm of the given vector
@@ -74,7 +73,7 @@ public class CosineSimilarity {
         return norm2;
     }
 
-/*
+/**
  * Given two vectors, it computes the dot product.
  * @param       vect1           -   the 1st vector
  * @param       vect2           -   the 2nd vector
@@ -89,13 +88,12 @@ public class CosineSimilarity {
         return dotProd;
     }
 
-/*
+/**
  * Given two terms vector and the total number of documents in the index, it computes the cosine similarity.
  * It uses the tf-idf weight as components of the vectors.
  * @param       terms1          -   the 1st terms vector
  * @param       terms2          -   the 2nd terms vector
  * @param       docCount        -   the total number of documents contained in the index
- * @throws      something goes wrong
  * @return      the cosine similarity between the two terms vectors
  */
     public static float getSimilarity(Terms terms1, Terms terms2, long docCount) throws IOException {

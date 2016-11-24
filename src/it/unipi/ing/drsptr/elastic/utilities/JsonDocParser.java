@@ -5,7 +5,7 @@ import java.util.Base64;
 import org.elasticsearch.action.get.GetResponse;
 import org.elasticsearch.search.SearchHit;
 
-/*
+/**
  * JsonDocParser is a class with static methods that allows to parse a JSON document and getting
  * the value of the fields.
  * @author		Pietro De Rosa
@@ -19,7 +19,7 @@ public class JsonDocParser {
 
 
 
-/*
+/**
  * It allows to retrieve the value of a textual field from a JSON document given as input.
  * @param		jsonDoc			-	the JSON document to parse
  * @param		fieldName		-	the name of the field you want to get
@@ -38,7 +38,7 @@ public class JsonDocParser {
 		return result;
 	}
 
-/*
+/**
  * It allows to retrieve the value of a textual field from the _source field after performed a get operation.
  * @param		gResponse		-	the GetResponse object containing the JSON document of the desidered document
  * @param		fieldName		-	the name of the field you want to get
@@ -52,7 +52,7 @@ public class JsonDocParser {
 		return gResponse.getSource().get(fieldName).toString();
 	}
 	
-/*
+/**
  * It allows to retrieve the value of a textual field from a matched elements, after a search operation.
  * @param		srcHit			-	the document that matched the search
  * @param		fieldName		-	the name of the field you want to get
@@ -70,7 +70,7 @@ public class JsonDocParser {
 
 
 
-/*
+/**
  * It allows to retrieve the value of a Base64 encoded binary field from a JSON document given as input.
  * @param		jsonDoc			-	the JSON document to parse
  * @param		fieldName		-	the name of the field you want to get
@@ -96,7 +96,7 @@ public class JsonDocParser {
 		return result;
 	}
 	
-/*
+/**
  * It allows to retrieve the value of a Base64 encoded binary field from the _source field after performed a get operation.
  * @param		gResponse		-	the GetResponse object containing the JSON document of the desidered document
  * @param		fieldName		-	the name of the field you want to get
@@ -115,7 +115,7 @@ public class JsonDocParser {
 		return decoder.decode(result);
 	}
 	
-/*
+/**
  * It allows to retrieve the value of a Base64 encoded binary field from a matched elements, after a search operation.
  * @param		srcHit			-	the document that matched the search
  * @param		fieldName		-	the name of the field you want to get

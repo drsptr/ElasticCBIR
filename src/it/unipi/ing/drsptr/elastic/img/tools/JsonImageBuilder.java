@@ -9,14 +9,14 @@ import it.unipi.ing.mim.deep.ImgDescriptor;
 
 import static org.elasticsearch.common.xcontent.XContentFactory.jsonBuilder;
 
-/*
+/**
  * JsonImageBuilder is a class with only a static method that allows to build the JSON document, with the corresponding
  * fields, for a given image.
  * @author		Pietro De Rosa
  */
 public class JsonImageBuilder {
 
-/*
+/**
  * It allows to build the JSON document for a given image.
  * @param		imgField		-	the encoded text of the image
  * @param		tagsField		-	the text description of the image

@@ -6,27 +6,34 @@ import java.net.UnknownHostException;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ExecutionException;
+import java.util.concurrent.TimeUnit;
 
 import org.apache.lucene.index.Terms;
-import org.elasticsearch.action.bulk.BulkRequestBuilder;
-import org.elasticsearch.action.bulk.BulkResponse;
+import org.elasticsearch.action.bulk.*;
+import org.elasticsearch.action.delete.DeleteRequest;
 import org.elasticsearch.action.delete.DeleteResponse;
 import org.elasticsearch.action.get.GetResponse;
 import org.elasticsearch.action.index.IndexRequest;
 import org.elasticsearch.action.index.IndexResponse;
 import org.elasticsearch.action.search.SearchResponse;
 import org.elasticsearch.action.search.SearchType;
+import org.elasticsearch.action.termvectors.MultiTermVectorsRequestBuilder;
+import org.elasticsearch.action.termvectors.MultiTermVectorsResponse;
+import org.elasticsearch.action.termvectors.TermVectorsRequest;
 import org.elasticsearch.action.termvectors.TermVectorsResponse;
 import org.elasticsearch.action.update.UpdateRequest;
 import org.elasticsearch.action.update.UpdateResponse;
 import org.elasticsearch.client.transport.TransportClient;
+import org.elasticsearch.common.collect.HppcMaps;
 import org.elasticsearch.common.settings.Settings;
 import org.elasticsearch.common.transport.InetSocketTransportAddress;
+import org.elasticsearch.common.unit.ByteSizeValue;
+import org.elasticsearch.common.unit.TimeValue;
 import org.elasticsearch.index.query.QueryBuilders;
 
 import static org.elasticsearch.common.xcontent.XContentFactory.*;
 
-/*
+/**
  * ElasticIndexManager is the base class which allows you to connect to an ES cluster and to perform operations on it.
  * It allows to: 1) Connect and disconnect to a cluster of nodes
  * 				 2) Create or delete indices and/or types
@@ -40,13 +47,22 @@ public class ElasticIndexManager {
 	public static final int DEFAULT_PORT = 9300;
 	public static final String DEFAULT_CLUSTER = "elasticsearch";
 
+	public static final String BULK_PROC_BACKOFF = "backoff";
+	public static final String BULK_PROC_ACTIONS = "actions";
+	public static final String BULK_PROC_SIZE = "size";
+	public static final String BULK_PROC_REQS = "requests";
+	public static final String BULK_PROC_INTERVAL = "interval";
+
+
 	protected TransportClient client;
+	protected BulkProcessor bulkProcessor;
+	private long bulkProcIndexed, bulkProcDeleted;
 	
 	
 
 
 
-/*
+/**
  * Default constructor. It uses default settings.
  */
 	public ElasticIndexManager() {
@@ -54,9 +70,9 @@ public class ElasticIndexManager {
 								.build();		
 	}
 	
-/*
+/**
  * This constructor uses the default settings but it allows to specify the name of the cluster you have to connect to.
- * @param		clustername		-	the name of the cluster you have to connect to
+ * @param		clusterName		-	the name of the cluster you have to connect to
  */
 	public ElasticIndexManager(String clusterName) {
 		Settings settings = Settings.settingsBuilder()
@@ -68,7 +84,7 @@ public class ElasticIndexManager {
 								.build();	
 	}
 
-/*
+/**
  * This constructor allows you specify custom settings for your client (cluster's name, ping timeout, etc).
  * @param		settings		-	the settings for your client node
  */
@@ -82,7 +98,7 @@ public class ElasticIndexManager {
 
 
 
-/*
+/**
  * It allows your client to connect to an elasticsearch node with a given IP address and listening port.
  * @param		address			-	the address of the elasticsearch node you want to connect to
  * @param		port			-	the listening port of the elasticsearch node you want to connect to
@@ -91,7 +107,7 @@ public class ElasticIndexManager {
 		client.addTransportAddress(new InetSocketTransportAddress(address, port));
 	}
 
-/*
+/**
  * It allows your client to connect to an elasticsearch node, given its hostname and its listening port.
  * It tries to resolve the hostname and then connects to it.
  * @param		hostname		-	the name of the host where the elasticsearch node is running
@@ -102,7 +118,7 @@ public class ElasticIndexManager {
 		client.addTransportAddress(new InetSocketTransportAddress(InetAddress.getByName(hostname), port));
 	}
 
-/*
+/**
  * It disconnects your client from an elasticsearch node of the cluster, given its IP address and listening port.
  * @param		address			-	the address of the elasticsearch node you want to disconnect from
  * @param		port			-	the listening port of the elasticsearch node you want to disconnect from
@@ -111,7 +127,7 @@ public class ElasticIndexManager {
 		client.removeTransportAddress(new InetSocketTransportAddress(address, port));
 	}
 	
-/*
+/**
  * It disconnects your client from an elasticsearch node of the cluster, given its hostname and listening port.
  * @param		hostname		-	the name of the host where the elasticsearch node is running
  * @param		port			-	the listening port of the elasticsearch node you want to disconnect from
@@ -121,7 +137,7 @@ public class ElasticIndexManager {
 		client.removeTransportAddress(new InetSocketTransportAddress(InetAddress.getByName(hostname), port));
 	}
 
-/*
+/**
  * It closes all the connections with all the elasticsearch nodes of the cluster and returns.
  */
 	public void close() {
@@ -132,7 +148,7 @@ public class ElasticIndexManager {
 
 	
 
-/*
+/**
  * It creates a new index in the cluster with the specified settings.
  * @param		indexName		-	the name of the index you're going to create
  * @param		settings		-	the settings of the index you're creating (number of shards, number of replicas, etc)
@@ -143,7 +159,7 @@ public class ElasticIndexManager {
 								.get();
 	}
 
-/*
+/**
  * It deletes an index and all its types.
  * @param		indexName		-	the name of the index you want to delete
  */
@@ -152,7 +168,7 @@ public class ElasticIndexManager {
 								.get();
 	}
 
-/*
+/**
  * It allows to add a new type to an existing index or to update an existing mapping.
  * @param		indexName		-	the name of the index
  * @param		typeName		-	the name of the type
@@ -170,7 +186,7 @@ public class ElasticIndexManager {
 
 
 
-/*
+/**
  * It allows to index a given document in the specified type within the index.
  * @param		indexName		-	the name of the index
  * @param		typeName		-	the name of the type
@@ -184,7 +200,7 @@ public class ElasticIndexManager {
 						.get();
 	}
 
-/*
+/**
  * It allows to retrieve an already indexed document on the base of its id.
  * @param		indexName		-	the name of the index
  * @param		typeName		-	the name of the type
@@ -196,7 +212,7 @@ public class ElasticIndexManager {
 						.get();
 	}
 
-/*
+/**
  * It allows to get the total number of documents stored in a given index.
  * @param		indexName		-	the name of the index
  * @return		the total number of documents stored in the index
@@ -209,7 +225,7 @@ public class ElasticIndexManager {
 		return searchResponse.getHits().getTotalHits();
 	}
 
-/*
+/**
  * It allows to get the total number of documents stored in a given type of a given index.
  * @param		indexName		-	the name of the index
  * @param		typeName		-	the name of the type
@@ -224,15 +240,14 @@ public class ElasticIndexManager {
 		return searchResponse.getHits().getTotalHits();
 	}
 
-/*
- * It allows to get the term vector for a given document. The field of the document from which you want to get the tv
+/**
+ * It allows to get the terms vector for a given document. The field of the document from which you want to get the tv
  * has to have term vector property enables, otherwise it is not possible to retrieve it.
  * @param		indexName		-	the name of the index
  * @param		typeName		-	the name of the type
  * @param		docId			-	the id of the document
  * @param		dfs				-	true for distributed frequencies, false for shard statistics
- * @throws		IOException if cannnot perform getFields()
- * @return		the response containing the term vector
+ * @return		the response containing the terms vector
  */
 	public TermVectorsResponse getTermVector(String indexName, String typeName, String docId, boolean dfs) {
 		return client.prepareTermVectors()
@@ -244,8 +259,8 @@ public class ElasticIndexManager {
 				.get();
 	}
 
-/*
- * It allows to get the term vector for a given document. The field of the document from which you want to get the tv
+/**
+ * It allows to get the terms vector for a given document. The field of the document from which you want to get the tv
  * has to have term vector property enables, otherwise it is not possible to retrieve it.
  * @param		indexName		-	the name of the index
  * @param		typeName		-	the name of the type
@@ -253,7 +268,7 @@ public class ElasticIndexManager {
  * @param		fieldName		-	the name of the field
  * @param		dfs				-	true for distributed frequencies, false for shard statistics
  * @throws		IOException if cannnot perform getFields()
- * @return		the org.apache.lucene.index.Terms class containing the term vector
+ * @return		the org.apache.lucene.index.Terms class containing the terms vector
  */
 	public Terms getTermVector(String indexName, String typeName, String docId, String fieldName, boolean dfs) throws IOException{
 		TermVectorsResponse termVectorsResponse = client.prepareTermVectors()
@@ -267,7 +282,35 @@ public class ElasticIndexManager {
 		return termVectorsResponse.getFields().terms(fieldName);
 	}
 
-/*
+/**
+ * It gets, in a single request, all the terms vectors from the same index and type of all the documents contained in
+ * the list, given as input.
+ * @param		indexName		-	the name of the index
+ * @param		typeName		-	the name of the type
+ * @param		docList			-	the list containing all the IDs of the documents which you want to retrieve the TV
+ * @return		the org.apache.lucene.index.Terms[] class containing the terms vectors
+ */
+	public Terms[] getTermsVectors(String indexName, String typeName, String fieldName, List<String> docList, boolean dfs) throws IOException {
+		Terms[] result = new Terms[docList.size()];
+		MultiTermVectorsRequestBuilder request = client.prepareMultiTermVectors();
+
+		for(String docId : docList)
+			request.add(new TermVectorsRequest(indexName, typeName, docId)
+												.termStatistics(true)
+												.dfs(true));
+
+		MultiTermVectorsResponse response = request.get();
+
+		for(int i=0; i<result.length; i++)
+			result[i] = response.getResponses()[i]
+								.getResponse()
+								.getFields()
+								.terms(fieldName);
+
+		return result;
+	}
+
+/**
  * It performs a query string search on the specified index and type.
  * @param		indexName		-	the name of the index
  * @param		typeName		-	the name of the type
@@ -288,7 +331,7 @@ public class ElasticIndexManager {
 						.actionGet();
 	}
 
-/* It delete a document from the index, given its id.
+/** It delete a document from the index, given its id.
  * @param		indexName		-	the name of the index
  * @param		typeName		-	the name of the type
  * @param		docId			-	the id of the document that has to be deleted from the index
@@ -297,14 +340,13 @@ public class ElasticIndexManager {
 		return client.prepareDelete(indexName, typeName, docId).get();
 	}
 
-/* It updates a given field of a document with a new value.
+/** It updates a given field of a document with a new value.
  * @param		indexName		-	the name of the index
  * @param		typeName		-	the name of the type
  * @param		docId			-	the id of the document that has to be updated
  * @param		fieldName		-	the name of the field that has to be updated
  * @param		fieldValue		-	the new value of the specified field
- * @throws		something goes wrong
- * @return		the response contains the result of the updating operation
+ * * @return		the response contains the result of the updating operation
  */
 	public UpdateResponse update(String indexName, String typeName, String docId, String fieldName, String fieldValue) throws IOException, InterruptedException, ExecutionException {
 		UpdateRequest updateRequest = new UpdateRequest(indexName, typeName, docId);
@@ -317,14 +359,13 @@ public class ElasticIndexManager {
 		return client.update(updateRequest).get();
 	}
 
-/* It tries to update a given field of a document, if it exist; otherwise it creates the document.
+/** It tries to update a given field of a document, if it exist; otherwise it creates the document.
  * @param		indexName		-	the name of the index
  * @param		typeName		-	the name of the type
  * @param		docId			-	the id of the document to update or to add
  * @param		jsonDoc			-	the JSON document that will be indexed, if the document doesn't exist
  * @param		fieldName		-	the name of the field that has to be updated, if the document exists
  * @param		fieldValue		-	the new value of the specified field, if the document exists
- * @throws		something goes wrong
  * @return		the response contains the result of the updating operation
  */
 	public UpdateResponse upsert(String indexName, String typeName, String docId, String jsonDoc, String fieldName, String fieldValue) throws IOException, InterruptedException, ExecutionException {
@@ -345,10 +386,95 @@ public class ElasticIndexManager {
 
 
 
-/* It allows to index several documents in a single request. So, indexing is more efficient and faster.
+/**
+ * It initializes the BulkProcessor with the settings given as input. To perform bulk operations, you can use either
+ * the BulkProcessor, that handles requests automatically, or the standard BulkRequest. It must be called before using
+ * any member function which executes its task using the BulkProcessor.
+ * @param		settings		-	the map containing the settings for the Bulk Processor
+ */
+	public void initBulkProcessor(Map<String, Object> settings) {
+		bulkProcIndexed = 0;
+		bulkProcDeleted = 0;
+
+		BulkProcessor.Builder bulkProcBuilder = BulkProcessor.builder(client,
+					new BulkProcessor.Listener() {
+						@Override
+						public void beforeBulk(long executionId, BulkRequest request) {
+							if(executionId == 1)
+								System.out.println("Exec.ID\t\t" +
+										"#Actions\t\t" +
+										"Size\t\t" +
+										"#idx\t\t" +
+										"#del\t\t");
+
+						}
+
+						@Override
+						public void afterBulk(long executionId, BulkRequest request, BulkResponse response) {
+							System.out.print("\r");
+							System.out.print(executionId + "\t\t" +
+												request.numberOfActions() + "\t\t\t" +
+												request.estimatedSizeInBytes() + " bytes\t\t" +
+												bulkProcIndexed + "\t\t" +
+												bulkProcDeleted + "\t\t");
+						}
+
+						@Override
+						public void afterBulk(long executionId, BulkRequest request, Throwable failure) {}
+				});
+
+		for(String set : settings.keySet())
+			switch(set) {
+				case(BULK_PROC_ACTIONS):
+					bulkProcBuilder.setBulkActions((Integer)settings.get(BULK_PROC_ACTIONS));
+					break;
+				case(BULK_PROC_BACKOFF):
+					bulkProcBuilder.setBackoffPolicy((BackoffPolicy) settings.get(BULK_PROC_BACKOFF));
+					break;
+				case(BULK_PROC_INTERVAL):
+					bulkProcBuilder.setFlushInterval((TimeValue) settings.get(BULK_PROC_INTERVAL));
+					break;
+				case(BULK_PROC_REQS):
+					bulkProcBuilder.setConcurrentRequests((Integer)settings.get(BULK_PROC_REQS));
+					break;
+				case(BULK_PROC_SIZE):
+					bulkProcBuilder.setBulkSize((ByteSizeValue) settings.get(BULK_PROC_SIZE));
+					break;
+			}
+
+		bulkProcessor = bulkProcBuilder.build();
+	}
+
+	public void closeBulkProcessor() {
+		bulkProcessor.close();
+	}
+
+	public boolean awaitCloseBulkProcessor(long timeout, TimeUnit unit) throws InterruptedException{
+		return bulkProcessor.awaitClose(timeout, unit);
+	}
+
+	public void indexDocBulkProcessor(String indexName, String typeName, String docId, String jsonDoc) {
+		bulkProcIndexed++;
+		bulkProcessor.add(new IndexRequest(indexName, typeName, docId).source(jsonDoc));
+	}
+
+	public void deleteDocBulkProcessor(String indexName, String typeName, String docId) {
+		bulkProcDeleted++;
+		bulkProcessor.add(new DeleteRequest(indexName, typeName, docId));
+	}
+
+	public void flushBulkProcessor() {
+		bulkProcessor.flush();
+	}
+
+
+
+
+
+/** It allows to index several documents in a single request. So, indexing is more efficient and faster.
  * @param		indexName		-	the name of the index
  * @param		typeName		-	the name of the type
- * @param		idJsonDocMap	-	the hash map containing the pairs <document's id, JSON document> that
+ * @param		idJsonDocMap	-	the hash map containing the pairs &lt;document's id, JSON document&gt; that
  * 									have to be indexed
  * @param		refresh			-	if true, the documents are immediately searchable; otherwise, you have to
  *									wait the next automatic refresh operation to be performed
@@ -368,7 +494,7 @@ public class ElasticIndexManager {
 		return bulkResponse;
 	}
 
-/* It allows to delete several documents in a single request.
+/** It allows to delete several documents in a single request.
  * @param		indexName		-	the name of the index
  * @param		typeName		-	the name of the type
  * @param		docsList		-	the list of documents' id to delete
@@ -379,15 +505,15 @@ public class ElasticIndexManager {
 
 		for(String docId : docsList)
 			bulkRequestBuilder.add(client
-									.prepareDelete(indexName, typeName, docId));
+										.prepareDelete(indexName, typeName, docId));
 
 		return bulkRequestBuilder.get();
 	}
 
-/* It allows to update several documents in a single request.
+/** It allows to update several documents in a single request.
  * @param		indexName		-	the name of the index
  * @param		typeName		-	the name of the type
- * @param		idJsonDocMap	-	the hash map containing the pairs <document's id, JSON document> that
+ * @param		idJsonDocMap	-	the hash map containing the pairs &lt;document's id, JSON document&gt; that
  * 									have to be updated
  * @return		the response contains the result of the bulk operation
  */
@@ -404,12 +530,12 @@ public class ElasticIndexManager {
 		return bulkRequestBuilder.get();
 	}
 
-/* It allows to index, update and delete several documents in a single request.
+/** It allows to index, update and delete several documents in a single request.
  * @param		indexName			-	the name of the index
  * @param		typeName			-	the name of the type
- * @param		idJsonMapToIndex	-	the hash map containing the pairs <document's id, JSON document> that
+ * @param		idJsonMapToIndex	-	the hash map containing the pairs &lt;document's id, JSON document&gt; that
  * 										have to be indexed
- * @param		idJsonMapToUpdate	-	the hash map containing the pairs <document's id, JSON document> that
+ * @param		idJsonMapToUpdate	-	the hash map containing the pairs &lt;document's id, JSON document&gt; that
  * 										have to be updated
  * @param		docsToDelete		-	the list of documents' id to delete
  * @return		the response contains the result of the bulk operation
@@ -443,14 +569,14 @@ public class ElasticIndexManager {
 
 
 
-/*
+/**
  * It allows to refresh all the indices without waiting for the automatic refreshing.
  */
 	public void forceRefresh() {
 		client.admin().indices().prepareRefresh().get();
 	}
 
-/*
+/**
  * It allows to refresh the specified index without waiting for the automatic refreshing.
  * @param		indexName		-	the name of the index to refresh
  */

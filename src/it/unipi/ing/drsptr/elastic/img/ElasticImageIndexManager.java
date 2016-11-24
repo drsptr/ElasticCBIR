@@ -25,7 +25,7 @@ import it.unipi.ing.mim.deep.ImgDescriptor;
 import it.unipi.ing.mim.deep.seq.SeqImageStorage;
 import it.unipi.ing.mim.deep.tools.FeaturesStorage;
 
-/*
+/**
  * ElasticImageIndexManager extends the ElasticIndexManager class introducing additional functions that allows to manage
  * easily a local or a remote image dataset with Elasticsearch.
  * It allows to: 1) Perform all the operations available with the ElasticIndexManager class
@@ -44,7 +44,7 @@ public class ElasticImageIndexManager extends ElasticIndexManager {
 
 
 
-/*
+/**
  * Default constructor. It uses default settings.
  * @param		qFactor			-	the quantization factor used to obtain the encoded text for the features
  */
@@ -53,9 +53,9 @@ public class ElasticImageIndexManager extends ElasticIndexManager {
 		this.qFactor = qFactor;
 	}
 
-/*
+/**
  * This constructor uses the default settings but it allows to specify the name of the cluster you have to connect to.
- * @param		clustername		-	the name of the cluster you have to connect to
+ * @param		clusterName		-	the name of the cluster you have to connect to
  * @param		qFactor			-	the quantization factor used to obtain the encoded text for the features
  */
 	public ElasticImageIndexManager(String clusterName, int qFactor) {
@@ -63,7 +63,7 @@ public class ElasticImageIndexManager extends ElasticIndexManager {
 		this.qFactor = qFactor;
 	}
 
-/*
+/**
  * This constructor allows you specify custom settings for your client (cluster's name, ping timeout, etc).
  * @param		settings		-	the settings for your client node
  * @param		qFactor			-	the quantization factor used to obtain the encoded text for the features
@@ -77,16 +77,15 @@ public class ElasticImageIndexManager extends ElasticIndexManager {
 
 
 
-/*
+/**
  * It loads the ImgDescriptor objects from the specified file and stores them in the member variable.
  * @param		storageFile		-	the file where the ImgDescriptor objects have been previously stored
- * @throws		IOException, ClassNotFoundException if there are errors reading the file
  */
 	public void loadImgDescriptorsFromFile(File storageFile) throws IOException, ClassNotFoundException {
 		imgDataset = FeaturesStorage.load(storageFile);
 	}
 
-/*
+/**
  * It extracts the deep features for all the images contained in the folder, stores them in ImgDescriptor objects and
  * finally stores them in the output file.
  * @param		imgSrcFolder	-	the folder that contains all the images of the dataset
@@ -98,11 +97,10 @@ public class ElasticImageIndexManager extends ElasticIndexManager {
 		FeaturesStorage.store(imgDataset, storageFile);
 	}
 
-/*
+/**
  * It allows to index the whole image dataset. It performs the indexing sending a single request to the node.
  * @param		indexName		-	the name of the index
  * @param		typeName		-	the name of the type
- * @throws		IOException, InterruptedException if something goes wrong during the creation of the JSON document
  */
 	public void indexImgDataset(String indexName, String typeName) throws IOException, InterruptedException {
 		Map<String, String> idJsonDocMap = new HashMap<>();
@@ -118,14 +116,13 @@ public class ElasticImageIndexManager extends ElasticIndexManager {
 	
 
 	
-/*
+/**
  * It performs a visual similarity search using an already indexed image as query.
  * @param		indexName		-	the name of the index
  * @param		typeName		-	the name of the type
  * @param		queryImgId		-	the id of the image used as query
  * @param		k				-	result's size
- * @throws		something goes wrong
- * @return		it returns a list containing the k most relevant images
+ * * @return		it returns a list containing the k most relevant images
  */
 	public List<ImgDescriptor> visualSearch(String indexName, String typeName, String queryImgId, int k) throws IOException, ClassNotFoundException, JsonDocParserFieldNotFoundException {
 		List<ImgDescriptor> result = new ArrayList<ImgDescriptor>(k);
@@ -146,7 +143,7 @@ public class ElasticImageIndexManager extends ElasticIndexManager {
 		return result;
 	}
 
-/*
+/**
  * It performs a visual similarity search using an already indexed image as query with the query reduction mechanism.
  * The query reduction mechanism takes into account only the n most significant features of the image and executes the
  * query considering only those components. This is done to speed up the query execution time.
@@ -155,8 +152,7 @@ public class ElasticImageIndexManager extends ElasticIndexManager {
  * @param		queryImgId		-	the id of the image used as query
  * @param		n				-	query reduction's size
  * @param		k				-	result's size
- * @throws		something goes wrong
- * @return		it returns a list containing the k most relevant images
+ * * @return		it returns a list containing the k most relevant images
  */
 	public List<ImgDescriptor> visualSearchQR(String indexName, String typeName, String queryImgId, int n, int k) throws IOException, ClassNotFoundException, JsonDocParserFieldNotFoundException {
 		List<ImgDescriptor> result = new ArrayList<ImgDescriptor>(k);
@@ -176,7 +172,7 @@ public class ElasticImageIndexManager extends ElasticIndexManager {
 		return result;
 	}
 
-/*
+/**
  * It performs a visual similarity search using an already indexed image as query with the query reduction mechanism.
  * Moreover, it reorder the result using the cosine similarity. It is done to get a better precision in the result.
  * In particular, it searches for the first (k * rFactor) images, then reorders them and finally returns
@@ -187,8 +183,7 @@ public class ElasticImageIndexManager extends ElasticIndexManager {
  * @param		n				-	query reduction's size
  * @param		k				-	result's size
  * @param		rFactor			-	reordering factor
- * @throws		something goes wrong
- * @return		it returns a list containing the k most relevant images
+ * * @return		it returns a list containing the k most relevant images
  */
 	public List<ImgDescriptor> visualSearchQRReordered(String indexName, String typeName, String queryImgId, int n, int k, int rFactor) throws IOException, ClassNotFoundException, JsonDocParserFieldNotFoundException {
 		List<ImgDescriptor> result = visualSearchQR(indexName,typeName,queryImgId, n, k * rFactor);
@@ -197,14 +192,13 @@ public class ElasticImageIndexManager extends ElasticIndexManager {
 	}
 
 
-/*
+/**
  * It performs the query reduction.
  * @param		indexName		-	the name of the index
  * @param		typeName		-	the name of the type
  * @param		queryImgId		-	the id of the image used as query
  * @param		n				-	query reduction's size
- * @throws		something goes wrong
- * @return		it returns the encoded image text for the reducted query
+ * * @return		it returns the encoded image text for the reducted query
  */
 	private String reduceQuery(String indexName, String typeName, String queryImgId, int n) throws IOException {
 		ClassicSimilarity similarity = new ClassicSimilarity();
@@ -233,17 +227,16 @@ public class ElasticImageIndexManager extends ElasticIndexManager {
 		return reducedQuery;
 	}
 
-/*
+/**
  * It reorders the result set using the cosine similarity and returns the first k elements.
  * @param		indexName		-	the name of the index
  * @param		typeName		-	the name of the type
  * @param		queryImgId		-	the id of the image used as query
  * @param		toOrder			-	the set to reorder
  * @param		k				-	the number of elements to return
- * @throws		something goes wrong
  * @return		the first k elements with the highest cosine similarity score
  */
-	private List<ImgDescriptor> reorder(String indexName, String typeName, String queryImgId, List<ImgDescriptor> toOrder, int k) throws IOException {
+	/*private List<ImgDescriptor> reorder(String indexName, String typeName, String queryImgId, List<ImgDescriptor> toOrder, int k) throws IOException {
 		Terms queryTV = getTermVector(indexName, typeName, queryImgId, Fields.IMG, true), objTV;
 		long docCount = getDocumentCount(indexName, typeName);
 		float cosSim;
@@ -252,6 +245,27 @@ public class ElasticImageIndexManager extends ElasticIndexManager {
 			objTV = getTermVector(indexName, typeName, imgDesc.getId(), Fields.IMG, true);
 			cosSim = CosineSimilarity.getSimilarity(queryTV, objTV, docCount);
 			imgDesc.setDist(cosSim);
+		}
+
+		Collections.sort(toOrder, Collections.reverseOrder());
+
+		return toOrder.subList(0, k);
+	}*/
+	private List<ImgDescriptor> reorder(String indexName, String typeName, String queryImgId, List<ImgDescriptor> toOrder, int k) throws IOException {
+		List<String> docIds = new ArrayList<>(toOrder.size() + 1);
+		long docCount = getDocumentCount(indexName, typeName);
+		Terms[] termVectors;
+		float cosSim;
+
+		docIds.add(queryImgId);
+		for(ImgDescriptor imgDesc : toOrder)
+			docIds.add(imgDesc.getId());
+
+		termVectors = getTermsVectors(indexName, typeName, Fields.IMG, docIds, true);
+
+		for(int i=1; i< termVectors.length; i++) {
+			cosSim = CosineSimilarity.getSimilarity(termVectors[0], termVectors[i], docCount);
+			toOrder.get(i - 1).setDist(cosSim);
 		}
 
 		Collections.sort(toOrder, Collections.reverseOrder());

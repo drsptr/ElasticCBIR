@@ -15,7 +15,7 @@ public class Output {
 		String html = "<html>\n<body>\n<table align='center'>\n";
 
 		for (int i = 0; i < ids.size(); i++) {
-			System.out.println(i + " - " + (float) ids.get(i).getDist() + "\t" + ids.get(i).getId() );
+			//System.out.println(i + " - " + (float) ids.get(i).getDist() + "\t" + ids.get(i).getId() );
 			
 			if (i % COLUMNS == 0) {
 				if (i != 0)
