@@ -90,17 +90,17 @@ public class ElasticCBIR {
 
 		long startTime= System.currentTimeMillis();
 
-		List<ImgDescriptor> result = esImgManager.visualSearch(ElasticCBIRParameters.INDEX_NAME,
+		/*List<ImgDescriptor> result = esImgManager.visualSearch(ElasticCBIRParameters.INDEX_NAME,
 																ElasticCBIRParameters.TYPE_NAME,
 																ElasticCBIRParameters.SRC_IMG,
-																ElasticCBIRParameters.K);
+																ElasticCBIRParameters.K);*/
 
-		/*List<ImgDescriptor> result = esImgManager.visualSearchQRReordered(ElasticCBIRParameters.INDEX_NAME,
+		List<ImgDescriptor> result = esImgManager.visualSearchQRReordered(ElasticCBIRParameters.INDEX_NAME,
 																			ElasticCBIRParameters.TYPE_NAME,
 																			ElasticCBIRParameters.SRC_IMG,
 																			ElasticCBIRParameters.Lq,
 																			ElasticCBIRParameters.K,
-																			ElasticCBIRParameters.Cr);*/
+																			ElasticCBIRParameters.Cr);
 
 		/*List<ImgDescriptor> result = esImgManager.visualSearchQR(ElasticCBIRParameters.INDEX_NAME,
 				ElasticCBIRParameters.TYPE_NAME,

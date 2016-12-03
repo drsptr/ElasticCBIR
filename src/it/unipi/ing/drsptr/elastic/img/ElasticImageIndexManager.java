@@ -236,35 +236,20 @@ public class ElasticImageIndexManager extends ElasticIndexManager {
  * @param		k				-	the number of elements to return
  * @return		the first k elements with the highest cosine similarity score
  */
-	/*private List<ImgDescriptor> reorder(String indexName, String typeName, String queryImgId, List<ImgDescriptor> toOrder, int k) throws IOException {
-		Terms queryTV = getTermVector(indexName, typeName, queryImgId, Fields.IMG, true), objTV;
-		long docCount = getDocumentCount(indexName, typeName);
-		float cosSim;
-
-		for(ImgDescriptor imgDesc : toOrder) {
-			objTV = getTermVector(indexName, typeName, imgDesc.getId(), Fields.IMG, true);
-			cosSim = CosineSimilarity.getSimilarity(queryTV, objTV, docCount);
-			imgDesc.setDist(cosSim);
-		}
-
-		Collections.sort(toOrder, Collections.reverseOrder());
-
-		return toOrder.subList(0, k);
-	}*/
 	private List<ImgDescriptor> reorder(String indexName, String typeName, String queryImgId, List<ImgDescriptor> toOrder, int k) throws IOException {
 		List<String> docIds = new ArrayList<>(toOrder.size() + 1);
 		long docCount = getDocumentCount(indexName, typeName);
 		Terms[] termVectors;
-		float cosSim;
+		double cosSim;
 
 		docIds.add(queryImgId);
 		for(ImgDescriptor imgDesc : toOrder)
 			docIds.add(imgDesc.getId());
 
-		termVectors = getTermsVectors(indexName, typeName, Fields.IMG, docIds, true);
+		termVectors = getTermsVectors(indexName, typeName, Fields.IMG, docIds, false);
 
 		for(int i=1; i< termVectors.length; i++) {
-			cosSim = CosineSimilarity.getSimilarity(termVectors[0], termVectors[i], docCount);
+			cosSim = CosineSimilarity.getSimilarity(termVectors[0], termVectors[i]);
 			toOrder.get(i - 1).setDist(cosSim);
 		}
 

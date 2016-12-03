@@ -101,13 +101,13 @@ public class ElasticCBIRParameters {
 
 	// Search settings
 		// Sample image
-			public static final String SRC_IMG = "4888431878";
+			public static final String SRC_IMG = "12413778503";
 		//k-Nearest Neighbors
 			public static final int K = 100;
 		// Reduction factor
 			public static final int Lq = 10;
 		// Reordering factor
-			public static final int Cr = 2;
+			public static final int Cr = 10;
 
 
 

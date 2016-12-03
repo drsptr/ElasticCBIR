@@ -292,14 +292,16 @@ public class ElasticIndexManager {
  */
 	public Terms[] getTermsVectors(String indexName, String typeName, String fieldName, List<String> docList, boolean dfs) throws IOException {
 		Terms[] result = new Terms[docList.size()];
-		MultiTermVectorsRequestBuilder request = client.prepareMultiTermVectors();
+		/*MultiTermVectorsRequestBuilder request = client.prepareMultiTermVectors();
 
 		for(String docId : docList)
 			request.add(new TermVectorsRequest(indexName, typeName, docId)
 												.termStatistics(true)
-												.dfs(true));
+												.dfs(dfs));
 
-		MultiTermVectorsResponse response = request.get();
+		MultiTermVectorsResponse response = request.get();*/
+
+		MultiTermVectorsResponse response = client.prepareMultiTermVectors().add(indexName, typeName, docList).get();
 
 		for(int i=0; i<result.length; i++)
 			result[i] = response.getResponses()[i]
