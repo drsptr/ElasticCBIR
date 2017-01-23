@@ -29,15 +29,20 @@ public class MappingBuilder {
 		XContentBuilder builder = jsonBuilder();
 
 		builder.startObject();
-			builder.field("properties");
-				builder.startObject();
-		
-					for(String field : fields.keySet())
-						builder.field(field, fields.get(field));
-			
-			builder.endObject();
+		builder.field("_all");
+		builder.startObject();
+		builder.field("enabled", false);
 		builder.endObject();
-		
+
+		builder.field("properties");
+		builder.startObject();
+
+		for(String field : fields.keySet())
+			builder.field(field, fields.get(field));
+
+		builder.endObject();
+		builder.endObject();
+
 		return builder.string();
 	}
 }

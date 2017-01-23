@@ -20,7 +20,7 @@ public class ElasticCBIRParameters {
 	public static final String INDEX_NAME = "cbir";
 	public static final String TYPE_NAME = "yfcc100m";
 	public static final int NUMBER_OF_SHARDS = 16;
-	public static final int NUMBER_OF_REPLICAS = 1;
+	public static final int NUMBER_OF_REPLICAS = 0;
 	public static final Settings INDEX_SETTINGS = Settings.builder()
 																.put("index.number_of_shards", ElasticCBIRParameters.NUMBER_OF_SHARDS)
 																.put("index.number_of_replicas", ElasticCBIRParameters.NUMBER_OF_REPLICAS)
@@ -42,7 +42,6 @@ public class ElasticCBIRParameters {
 				{
 					put("type", "string");
 					put("index_options", "freqs");
-					put("store", "true");
 					put("term_vector", "yes");
 				}
 			};
@@ -51,7 +50,6 @@ public class ElasticCBIRParameters {
 				{
 					put("type", "string");
 					put("index_options", "docs");
-					put("store", "true");
 				}
 			};
 

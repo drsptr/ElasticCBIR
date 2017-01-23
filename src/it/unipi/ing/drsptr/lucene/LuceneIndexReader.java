@@ -8,8 +8,10 @@ import java.util.Map;
 
 import org.apache.lucene.document.Document;
 import org.apache.lucene.index.DirectoryReader;
+import org.apache.lucene.index.MultiFields;
 import org.apache.lucene.index.TermsEnum;
 import org.apache.lucene.store.FSDirectory;
+import org.apache.lucene.util.Bits;
 
 /**
  * LuceneIndexReader allows you to read the content of a Lucene index; in particular, you can read a document with all
@@ -19,6 +21,7 @@ import org.apache.lucene.store.FSDirectory;
 public class LuceneIndexReader {
 
 	private DirectoryReader indexReader;
+	private Bits liveDocs;
 	private List<String> storedFields;
 	private List<String> termVectorFields;
 
@@ -35,6 +38,7 @@ public class LuceneIndexReader {
  */
 	public LuceneIndexReader(String luceneIndexPath, List<String> storedFields, List<String> termVectorFields) throws IOException {
 		indexReader = DirectoryReader.open(FSDirectory.open(Paths.get(luceneIndexPath, "")));
+		liveDocs = MultiFields.getLiveDocs(indexReader);
 		this.storedFields = storedFields;
 		this.termVectorFields = termVectorFields;
 	}
@@ -43,6 +47,17 @@ public class LuceneIndexReader {
 
 
 
+	public void checkDeleteDocs(int end) {
+		for(int i=0; i<end; i++) {
+			if (i % 1000000 == 0)
+				System.out.println("ANALYZED: " + i);
+			if (!liveDocs.get(i)) {
+				// document is deleted...
+				System.out.println("DELETED DOC: " + i);
+			}
+		}
+	}
+
 /**
  * It allows to read a document from the index with a specific id, given as input.
  * @param		docId				-	the id of the document to read
@@ -50,6 +65,9 @@ public class LuceneIndexReader {
  * @return		A map with the field name as key and the corresponding value as object
  */
 	public Map<String, Object> readDocument(int docId) throws IOException {
+		if (!liveDocs.get(docId))	// check if it is a deleted document
+			return null;
+
 		Map<String, Object> result = new HashMap<>();
 		Document document = indexReader.document(docId);
 
@@ -75,8 +93,16 @@ public class LuceneIndexReader {
  * It returns the total number of documents stored in the index.
  * @return		the total number of documents stored in the index
  */
-	public int getNumDocuments() {
+	public int getNumIndexedDocuments() {
 		return indexReader.numDocs();
+	}
+
+/**
+ * It returns the total number of documents stored in the index.
+ * @return		the total number of documents stored in the index
+ */
+	public int getNumAllDocuments() {
+		return indexReader.maxDoc();
 	}
 
 /**

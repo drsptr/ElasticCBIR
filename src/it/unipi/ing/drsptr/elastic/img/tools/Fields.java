@@ -6,10 +6,10 @@ package it.unipi.ing.drsptr.elastic.img.tools;
  */
 public class Fields {
 
-	public static final String IMG = "encoded_features";	// the encoded text of the image
-	
-	public static final String TAGS = "tags";	// the tags assigned to the image
-	
+	public static final String IMG = "deep";	// the encoded text of the image
+
+	public static final String TAGS = "txt";	// the tags assigned to the image
+
 	public static final String URI = "uri";		// the uri of the image
 
 }
