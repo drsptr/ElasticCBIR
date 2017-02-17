@@ -47,7 +47,7 @@ public class LuceneIndexReader {
 
 
 
-	public void checkDeleteDocs(int end) {
+	private void checkDeleteDocs(int end) {
 		for(int i=0; i<end; i++) {
 			if (i % 1000000 == 0)
 				System.out.println("ANALYZED: " + i);

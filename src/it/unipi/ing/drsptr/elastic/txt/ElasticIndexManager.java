@@ -325,12 +325,34 @@ public class ElasticIndexManager {
 		return client.prepareSearch(indexName)
 						.setTypes(typeName)
 						.setSearchType(SearchType.DFS_QUERY_THEN_FETCH)
-						.setQuery(QueryBuilders.queryStringQuery(fieldValue).field(fieldName))
+						.setQuery(QueryBuilders.queryStringQuery(fieldValue).field(fieldName).analyzeWildcard(true))
 						.setFrom(0)
 						.setSize(maxResultSize)
 						.setExplain(true)
 						.execute()
 						.actionGet();
+	}
+
+	/**
+	 * It performs a query string search on the specified index, type and shards.
+	 * @param		indexName		-	the name of the index
+	 * @param		typeName		-	the name of the type
+	 * @param		fieldName		-	the field which has to be searched for the query string
+	 * @param		fieldValue		-	the query string
+	 * @param		maxResultSize	-	the cardinality of the result
+	 * @return		the response contains the documents with the highest score with respect to the query document
+	 */
+	public SearchResponse queryStringSearchOnShards(String indexName, String typeName, String shardsList, String fieldName, String fieldValue, int maxResultSize) {
+		return client.prepareSearch(indexName)
+				.setTypes(typeName)
+				.setSearchType(SearchType.DFS_QUERY_THEN_FETCH)
+				.setQuery(QueryBuilders.queryStringQuery(fieldValue).field(fieldName).analyzeWildcard(true))
+				.setPreference("_shards:" + shardsList)
+				.setFrom(0)
+				.setSize(maxResultSize)
+				.setExplain(true)
+				.execute()
+				.actionGet();
 	}
 
 /** It delete a document from the index, given its id.
@@ -584,5 +606,22 @@ public class ElasticIndexManager {
  */
 	public void forceRefresh(String indexName) {
 		client.admin().indices().prepareRefresh(indexName).get();
+	}
+
+	public void setReplicas(int num) {
+		client.admin().indices().prepareUpdateSettings("cbir")
+				.setSettings(Settings.builder()
+						.put("index.number_of_replicas", num)
+				)
+				.get();
+	}
+
+
+	public void disableAllocation() {
+		client.admin().indices().prepareUpdateSettings("cbir")
+				.setSettings(Settings.builder()
+						.put("cluster.routing.allocation.enable", "none")
+				)
+				.get();
 	}
 }

@@ -130,16 +130,46 @@ public class ElasticImageIndexManager extends ElasticIndexManager {
 		
 		GetResponse getRespQuery = get(indexName, typeName, queryImgId);
 		String imgTxt = JsonDocParser.getStringFieldValue(getRespQuery, Fields.IMG);
-		
 		SearchResponse searchResp = super.queryStringSearch(indexName, typeName, Fields.IMG, imgTxt, k);
+		System.out.println("ID: " + queryImgId + "   " + (double)(searchResp.getTookInMillis()/1000) + "s");
 		SearchHit[] srcHits = searchResp.getHits().hits();
-		
-		for(int i=0; i<srcHits.length; i++) {
+
+		/*for(int i=0; i<srcHits.length; i++) {
 			imgDesc = new ImgDescriptor(srcHits[i].getId(), JsonDocParser.getStringFieldValue(srcHits[i], Fields.TAGS), JsonDocParser.getStringFieldValue(srcHits[i], Fields.URI));
 			imgDesc.setDist(srcHits[i].getScore());
 			result.add(imgDesc);
-		}
+		}*/
 		
+		return result;
+	}
+
+
+
+	public List<ImgDescriptor> visualSearchOnShards(String indexName, String typeName, String shards, String queryImgId, int k) throws IOException, ClassNotFoundException, JsonDocParserFieldNotFoundException {
+		List<ImgDescriptor> result = new ArrayList<ImgDescriptor>(k);
+		PostingsEnum postings = null;
+		String imgTxt = "";
+		ImgDescriptor imgDesc;
+
+		TermsEnum iterator = getTermVector(indexName, typeName, queryImgId, Fields.IMG, false).iterator();
+
+		List<String> termVectorList = new ArrayList<>();
+		while(iterator.next() != null) {
+			postings = iterator.postings(postings, PostingsEnum.FREQS);
+			imgTxt += iterator.term().utf8ToString() + "^" + postings.freq() + " ";
+		}
+		System.out.println(imgTxt);
+
+		SearchResponse searchResp = super.queryStringSearchOnShards(indexName, typeName, shards, Fields.IMG, imgTxt, k);
+		System.out.println("ID: " + queryImgId + "   " + searchResp.getTookInMillis());
+		SearchHit[] srcHits = searchResp.getHits().hits();
+
+		/*for(int i=0; i<srcHits.length; i++) {
+			imgDesc = new ImgDescriptor(srcHits[i].getId(), JsonDocParser.getStringFieldValue(srcHits[i], Fields.TAGS), JsonDocParser.getStringFieldValue(srcHits[i], Fields.URI));
+			imgDesc.setDist(srcHits[i].getScore());
+			result.add(imgDesc);
+		}*/
+
 		return result;
 	}
 
@@ -163,11 +193,30 @@ public class ElasticImageIndexManager extends ElasticIndexManager {
 		SearchResponse searchResp = super.queryStringSearch(indexName, typeName, Fields.IMG, imgTxt, k);
 		SearchHit[] srcHits = searchResp.getHits().hits();
 
-		for(int i=0; i<srcHits.length; i++) {
+		/*for(int i=0; i<srcHits.length; i++) {
 			imgDesc = new ImgDescriptor(srcHits[i].getId(), JsonDocParser.getStringFieldValue(srcHits[i], Fields.TAGS), JsonDocParser.getStringFieldValue(srcHits[i], Fields.URI));
 			imgDesc.setDist(srcHits[i].getScore());
 			result.add(imgDesc);
-		}
+		}*/
+
+		return result;
+	}
+
+	public List<ImgDescriptor> visualSearchQROnShards(String indexName, String typeName, String shards, String queryImgId, int n, int k) throws IOException, ClassNotFoundException, JsonDocParserFieldNotFoundException {
+		List<ImgDescriptor> result = new ArrayList<ImgDescriptor>(k);
+		ImgDescriptor imgDesc;
+
+		String imgTxt = reduceQuery(indexName, typeName, queryImgId, n);
+
+		SearchResponse searchResp = super.queryStringSearchOnShards(indexName, typeName, shards, Fields.IMG, imgTxt, k);
+		System.out.println("ID: " + queryImgId + "   " + searchResp.getTookInMillis());
+		SearchHit[] srcHits = searchResp.getHits().hits();
+
+		/*for(int i=0; i<srcHits.length; i++) {
+			imgDesc = new ImgDescriptor(srcHits[i].getId(), JsonDocParser.getStringFieldValue(srcHits[i], Fields.TAGS), JsonDocParser.getStringFieldValue(srcHits[i], Fields.URI));
+			imgDesc.setDist(srcHits[i].getScore());
+			result.add(imgDesc);
+		}*/
 
 		return result;
 	}
@@ -200,7 +249,7 @@ public class ElasticImageIndexManager extends ElasticIndexManager {
  * @param		n				-	query reduction's size
  * * @return		it returns the encoded image text for the reducted query
  */
-	private String reduceQuery(String indexName, String typeName, String queryImgId, int n) throws IOException {
+	public String reduceQuery(String indexName, String typeName, String queryImgId, int n) throws IOException {
 		ClassicSimilarity similarity = new ClassicSimilarity();
 		float tf, idf, tfidf;
 		long docCount = getDocumentCount(indexName, typeName);
@@ -221,7 +270,8 @@ public class ElasticImageIndexManager extends ElasticIndexManager {
 
 		for (int i=0; i<n && i<termVectorList.size(); i++) {
 			String[] tfidfFreqTerm = termVectorList.get(i).split(";");
-			reducedQuery += new String(new char[(int)Integer.parseInt(tfidfFreqTerm[1])]).replace("\0", tfidfFreqTerm[2] + " ");
+			//reducedQuery += new String(new char[(int)Integer.parseInt(tfidfFreqTerm[1])]).replace("\0", tfidfFreqTerm[2] + " ");
+			reducedQuery += new String(tfidfFreqTerm[2] + "^" + tfidfFreqTerm[1] + " ");
 		}
 
 		return reducedQuery;

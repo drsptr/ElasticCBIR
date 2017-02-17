@@ -27,13 +27,13 @@ public class ElasticCBIR {
 	private static void importLuceneIndex(String lucenePath, List<String> storedFields, List<String> termVectorFields) throws IOException, InterruptedException {
 		ElasticIndexManager indexManager = new ElasticIndexManager();
 		indexManager.connectTo(ElasticCBIRParameters.LOOPBACK_ADDRESS, ElasticIndexManager.DEFAULT_PORT);
-		//indexManager.createIndex(ElasticCBIRParameters.INDEX_NAME, ElasticCBIRParameters.INDEX_SETTINGS);
-		//indexManager.putMapping(ElasticCBIRParameters.INDEX_NAME, ElasticCBIRParameters.TYPE_NAME, MappingBuilder.build(ElasticCBIRParameters.MAPPING_FIELDS));
+		indexManager.createIndex(ElasticCBIRParameters.INDEX_NAME, ElasticCBIRParameters.INDEX_SETTINGS);
+		indexManager.putMapping(ElasticCBIRParameters.INDEX_NAME, ElasticCBIRParameters.TYPE_NAME, MappingBuilder.build(ElasticCBIRParameters.MAPPING_FIELDS));
 		LuceneIndexReader indexReader = new LuceneIndexReader(lucenePath, storedFields, termVectorFields);
 		int docsToProcess = indexReader.getNumAllDocuments(), processedDocs;
 		Map<String, String> idJsonMap = new HashMap<>();
 
-		for(processedDocs = 10000000; processedDocs <= 16000000; processedDocs++) {
+		for(processedDocs = 0; processedDocs <= 100000; processedDocs++) {
 			if(!idJsonMap.isEmpty() && (processedDocs % 100000 == 0 || processedDocs >= docsToProcess)) {
 				BulkResponse bulkResponse = indexManager.bulkIndex(ElasticCBIRParameters.INDEX_NAME, ElasticCBIRParameters.TYPE_NAME, idJsonMap, true);
 				idJsonMap.clear();
@@ -82,18 +82,18 @@ public class ElasticCBIR {
 	}
 
 	public static void main(String[] args) throws IOException, ClassNotFoundException, JsonDocParserFieldNotFoundException, InterruptedException {
-		/*ElasticImageIndexManager esImgManager = new ElasticImageIndexManager(ElasticCBIRParameters.Q);
+		ElasticImageIndexManager esImgManager = new ElasticImageIndexManager(ElasticCBIRParameters.Q);
 
 		esImgManager.connectTo(ElasticCBIRParameters.LOOPBACK_ADDRESS, ElasticIndexManager.DEFAULT_PORT);
 
-		importIndex(esImgManager);
+		//importIndex(esImgManager);
 
 		long startTime= System.currentTimeMillis();
 
-		List<ImgDescriptor> result = esImgManager.visualSearch(ElasticCBIRParameters.INDEX_NAME,
+		/*List<ImgDescriptor> result = esImgManager.visualSearch(ElasticCBIRParameters.INDEX_NAME,
 																ElasticCBIRParameters.TYPE_NAME,
 																ElasticCBIRParameters.SRC_IMG,
-																ElasticCBIRParameters.K);
+																ElasticCBIRParameters.K);*/
 
 		List<ImgDescriptor> result = esImgManager.visualSearchQRReordered(ElasticCBIRParameters.INDEX_NAME,
 																			ElasticCBIRParameters.TYPE_NAME,
@@ -102,17 +102,18 @@ public class ElasticCBIR {
 																			ElasticCBIRParameters.K,
 																			ElasticCBIRParameters.Cr);
 
-		List<ImgDescriptor> result = esImgManager.visualSearchQR(ElasticCBIRParameters.INDEX_NAME,
+		/*List<ImgDescriptor> result = esImgManager.visualSearchQR(ElasticCBIRParameters.INDEX_NAME,
 				ElasticCBIRParameters.TYPE_NAME,
 				ElasticCBIRParameters.SRC_IMG,
 				ElasticCBIRParameters.Lq,
-				ElasticCBIRParameters.K);
+				ElasticCBIRParameters.K);*/
 
 		System.out.println(((double)(System.currentTimeMillis() - startTime))/1000 + "s");
 		Output.toHTML(result, ElasticCBIRParameters.RESULTS_HTML);
 
-		esImgManager.close();*/
-		importLuceneIndex(ElasticCBIRParameters.LUCENE_INDEX_PATH, ElasticCBIRParameters.LUCENE_FIELDS_STORED, ElasticCBIRParameters.LUCENE_FIELDS_TV);
+		esImgManager.close();
+		//importLuceneIndex(ElasticCBIRParameters.LUCENE_INDEX_PATH, ElasticCBIRParameters.LUCENE_FIELDS_STORED, ElasticCBIRParameters.LUCENE_FIELDS_TV);
 
+		//esImgManager.setReplicas(0);
 	}
 }
